@@ -32,6 +32,7 @@ public class FormulaControler : MonoBehaviour
         public Axle axle;
         public WheelCollider collider;
         public Transform visual;
+        [HideInInspector] public Quaternion initialVisualRotation;
     }
 
     [Header("Wheels")]
@@ -42,8 +43,12 @@ public class FormulaControler : MonoBehaviour
     // ======================================
     [Header("Car settings")]
     public float maxMotorTorque = 2000f;
-    public float maxSteerAngle = 30f;
     public float brakeTorque = 4000f;
+
+    [Header("Steering")]
+    public float maxSteerAngle = 30f;
+    public float highSpeedSteerAngle = 8f;
+    public float steerAngleRate = 50f;   // degrees per second
 
     [Header("Stability")]
     public float downforceMultiplier = 50f;
@@ -73,6 +78,9 @@ public class FormulaControler : MonoBehaviour
     private Vector2 moveInput;
     private float maxSpeedMS;
     private bool brakeEventsBound = false;
+    private float currentSteerAngle = 0f;
+
+    public Vector3 _centerOfMass;
 
     // ======================================
     // AWAKE
@@ -80,10 +88,11 @@ public class FormulaControler : MonoBehaviour
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
-        rb.centerOfMass = new Vector3(0f, -0.3f, 0f);
+        rb.centerOfMass = _centerOfMass;
 
         maxSpeedMS = maxSpeedKPH / 3.6f;
         ConfigureSuspension();
+        CacheInitialWheelRotations();
 
         if (inputActions != null)
         {
@@ -182,6 +191,11 @@ public class FormulaControler : MonoBehaviour
         float brakeInput = 0f;
         float reverseEntryMS = reverseEntryKPH / 3.6f;
 
+        float allowedSteerAngle = GetSpeedAdjustedSteerAngle(currentSpeed);
+        float targetSteerAngle = steerInput * allowedSteerAngle;
+        float maxSteerStep = steerAngleRate * Time.fixedDeltaTime;
+        currentSteerAngle = Mathf.MoveTowards(currentSteerAngle, targetSteerAngle, maxSteerStep);
+
         if (brakePressed)
         {
             if (currentSpeed > reverseEntryMS)
@@ -219,7 +233,9 @@ public class FormulaControler : MonoBehaviour
             if (w.collider == null) continue;
 
             if (w.axle == Axle.Front)
-                w.collider.steerAngle = steerInput * maxSteerAngle;
+                w.collider.steerAngle = currentSteerAngle;
+            else
+                w.collider.steerAngle = 0f;   // lock rear steering
 
             w.collider.motorTorque = throttleTorque * maxMotorTorque;
             w.collider.brakeTorque = brakeInput * brakeTorque;
@@ -236,7 +252,17 @@ public class FormulaControler : MonoBehaviour
         if (w.visual == null || w.collider == null) return;
         w.collider.GetWorldPose(out Vector3 pos, out Quaternion rot);
         w.visual.position = pos;
-        w.visual.rotation = rot;
+
+        if (w.axle == Axle.Rear)
+        {
+            Vector3 euler = rot.eulerAngles;
+            euler.y = w.initialVisualRotation.eulerAngles.y;
+            w.visual.rotation = Quaternion.Euler(euler);
+        }
+        else
+        {
+            w.visual.rotation = rot;
+        }
     }
 
     // ======================================
@@ -337,6 +363,17 @@ public class FormulaControler : MonoBehaviour
         }
     }
 
+    private void CacheInitialWheelRotations()
+    {
+        if (wheels == null) return;
+
+        foreach (var w in wheels)
+        {
+            if (w.visual != null)
+                w.initialVisualRotation = w.visual.rotation;
+        }
+    }
+
     private void EnableTiltDevices()
     {
         // Ensure mobile sensors are on so the Tilt action receives values
@@ -372,5 +409,11 @@ public class FormulaControler : MonoBehaviour
             steer = 0f;
 
         return steer * tiltSteerSensitivity;
+    }
+
+    private float GetSpeedAdjustedSteerAngle(float speed)
+    {
+        float speedFactor = Mathf.Clamp01(speed / Mathf.Max(0.01f, maxSpeedMS));
+        return Mathf.Lerp(maxSteerAngle, highSpeedSteerAngle, speedFactor);
     }
 }
