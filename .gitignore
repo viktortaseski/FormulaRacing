@@ -1,0 +1,30 @@
+# Unity generated folders
+Library/
+Temp/
+Obj/
+Build/
+Builds/
+Logs/
+UserSettings/
+
+# Visual Studio / Rider / VSCode
+.vs/
+.vscode/
+*.csproj
+*.sln
+*.user
+*.unityproj
+*.pidb
+*.suo
+*.userprefs
+
+# OS files
+.DS_Store
+
+# Crash / debug logs
+*.log
+*.stacktrace
+
+# Other
+MemoryCaptures/
+Recordings/
