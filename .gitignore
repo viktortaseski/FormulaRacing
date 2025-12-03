@@ -24,6 +24,9 @@ UserSettings/
 # Crash / debug logs
 *.log
 *.stacktrace
+*.fbx
+*.glb
+*.gltb
 
 # Other
 MemoryCaptures/
