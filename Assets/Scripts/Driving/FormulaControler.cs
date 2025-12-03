@@ -1,14 +1,10 @@
 using UnityEngine;
-using UnityEngine.InputSystem;   // new Input System
+using UnityEngine.InputSystem;
 using UnityEngine.EventSystems;
 
 public class FormulaControler : MonoBehaviour
 {
-    public enum Axle
-    {
-        Front,
-        Rear
-    }
+    public enum Axle { Front, Rear }
 
     // ======================================
     // UI CONTROLS
@@ -20,12 +16,11 @@ public class FormulaControler : MonoBehaviour
     private bool brakePressed = false;
     private bool sliderHeld = false;
 
-    private float targetSpeed = 0f;       // in m/s
-    public float maxSpeedKPH = 360f;      // top speed in km/h
-    public float speedHoldAssist = 10f;   // speed regulation strength
-    public float reverseEntryKPH = 10f;   // if braking below this, engage reverse
-    public float brakeSliderDecayPerSecond = 2f; // how fast the slider eases down while braking
-
+    private float targetSpeed = 0f;
+    public float maxSpeedKPH = 360f;
+    public float speedHoldAssist = 10f;
+    public float reverseEntryKPH = 10f;
+    public float brakeSliderDecayPerSecond = 2f;
 
     // ======================================
     // WHEELS
@@ -35,17 +30,12 @@ public class FormulaControler : MonoBehaviour
     {
         public string wheelName;
         public Axle axle;
-
-        [Header("Physics")]
         public WheelCollider collider;
-
-        [Header("Visual")]
         public Transform visual;
     }
 
     [Header("Wheels")]
     public Wheel[] wheels;
-
 
     // ======================================
     // CAR SETTINGS
@@ -55,11 +45,21 @@ public class FormulaControler : MonoBehaviour
     public float maxSteerAngle = 30f;
     public float brakeTorque = 4000f;
 
-
     [Header("Stability")]
     public float downforceMultiplier = 50f;
     public float antiRollStrength = 6000f;
+    public float suspensionDistanceFactor = 0.35f;
+    public float suspensionSpringMultiplier = 1.1f;
+    public float suspensionDamperMultiplier = 2.2f;
 
+    // ======================================
+    // TILT / ACCELEROMETER INPUT
+    // ======================================
+    [Header("Tilt Steering")]
+    public float tiltSteerSensitivity = 1.5f;
+    public float tiltDeadzone = 0.05f;
+
+    private InputAction tiltAction;
 
     // ======================================
     // INPUT SYSTEM
@@ -74,43 +74,45 @@ public class FormulaControler : MonoBehaviour
     private float maxSpeedMS;
     private bool brakeEventsBound = false;
 
-
     // ======================================
     // AWAKE
     // ======================================
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
-
-        // Lower center of mass
         rb.centerOfMass = new Vector3(0f, -0.3f, 0f);
+
         maxSpeedMS = maxSpeedKPH / 3.6f;
+        ConfigureSuspension();
 
         if (inputActions != null)
         {
-            playerMap = inputActions.FindActionMap("Player", throwIfNotFound: true);
-            moveAction = playerMap.FindAction("Move", throwIfNotFound: true);
+            playerMap = inputActions.FindActionMap("Player", true);
+            moveAction = playerMap.FindAction("Move", true);
+            tiltAction = playerMap.FindAction("Tilt", false);   // optional; bind in asset
         }
+
+        EnableTiltDevices();
     }
 
-
     // ======================================
-    // UI EVENTS
+    // ON ENABLE
     // ======================================
     private void OnEnable()
     {
-        // Bind slider
         if (throttleSlider != null)
             throttleSlider.onValueChanged.AddListener(OnThrottleChanged);
 
         BindBrakeButtonHold();
 
-        // Bind input actions
         if (playerMap == null || moveAction == null) return;
 
         playerMap.Enable();
         moveAction.performed += OnMove;
         moveAction.canceled += OnMove;
+
+        if (tiltAction != null)
+            tiltAction.Enable();   // << ENABLE TILT INPUT
     }
 
     private void OnDisable()
@@ -125,6 +127,9 @@ public class FormulaControler : MonoBehaviour
         moveAction.performed -= OnMove;
         moveAction.canceled -= OnMove;
         playerMap.Disable();
+
+        if (tiltAction != null)
+            tiltAction.Disable();
     }
 
     private void OnMove(InputAction.CallbackContext ctx)
@@ -132,58 +137,53 @@ public class FormulaControler : MonoBehaviour
         moveInput = ctx.ReadValue<Vector2>();
     }
 
-
+    // BRAKE BUTTON EVENTS
     private void BrakeDown() => brakePressed = true;
     private void BrakeUp() => brakePressed = false;
 
-
+    // THROTTLE SLIDER
     private void OnThrottleChanged(float value)
     {
         sliderHeld = true;
-
         targetSpeed = value * maxSpeedMS;
     }
 
-    public void BeginSliderDrag()
-    {
-        sliderHeld = true;
-    }
-
-    public void EndSliderDrag()
-    {
-        sliderHeld = false;
-    }
+    public void BeginSliderDrag() => sliderHeld = true;
+    public void EndSliderDrag() => sliderHeld = false;
 
 
     // ======================================
-    // UPDATE → SLIDER RETURN
+    // UPDATE → SLIDER DECAY
     // ======================================
     private void Update()
     {
         HandleSliderDecay();
     }
 
-
     // ======================================
     // FIXED UPDATE → CAR PHYSICS
     // ======================================
     private void FixedUpdate()
     {
-        // 0. Read steering
-        float steerInput = moveInput.x;
+        // ----------------------------------
+        // READ TILT INPUT
+        // ----------------------------------
+        float tiltSteer = ReadTilt();
 
-        // 1. Current speed
+        // Combine tilt with Move input
+        float steerInput = moveInput.x + tiltSteer;
+        steerInput = Mathf.Clamp(steerInput, -1f, 1f);
+
+        // ----------------------------------
+        // CAR FORCE LOGIC
+        // ----------------------------------
         float currentSpeed = rb.linearVelocity.magnitude;
         float throttleTorque = 0f;
         float brakeInput = 0f;
         float reverseEntryMS = reverseEntryKPH / 3.6f;
 
-        // ======================================
-        // 2. BRAKE OVERRIDES EVERYTHING
-        // ======================================
         if (brakePressed)
         {
-            // If still moving forward, apply brakes. Once slow enough, drive reverse.
             if (currentSpeed > reverseEntryMS)
             {
                 throttleTorque = 0f;
@@ -191,40 +191,29 @@ public class FormulaControler : MonoBehaviour
             }
             else
             {
-                throttleTorque = -1f; // engage reverse while holding brake
+                throttleTorque = -1f;
                 brakeInput = 0f;
             }
         }
         else
         {
-            // ======================================
-            // 3. TARGET SPEED LOGIC
-            // ======================================
             if (currentSpeed < targetSpeed - 0.5f)
             {
-                throttleTorque = 1f;   // accelerate
+                throttleTorque = 1f;
             }
             else if (currentSpeed > targetSpeed + 0.5f)
             {
-                brakeInput = Mathf.Clamp(
-                    (currentSpeed - targetSpeed) / speedHoldAssist,
-                    0f, 1f
-                );
-            }
-            else
-            {
-                throttleTorque = 0f;
-                brakeInput = 0f;
+                brakeInput = Mathf.Clamp((currentSpeed - targetSpeed) / speedHoldAssist, 0f, 1f);
             }
         }
 
-        // 4. DOWNFORCE
-        rb.AddForce(-transform.up * rb.linearVelocity.magnitude * downforceMultiplier);
+        // DOWNFORCE
+        rb.AddForce(-transform.up * currentSpeed * downforceMultiplier);
 
-        // 5. ANTI-ROLL BARS
+        // ANTI-ROLL
         ApplyAntiRollBars();
 
-        // 6. APPLY WHEEL FORCES
+        // APPLY TO WHEELS
         foreach (var w in wheels)
         {
             if (w.collider == null) continue;
@@ -239,22 +228,19 @@ public class FormulaControler : MonoBehaviour
         }
     }
 
-
     // ======================================
-    // WHEEL VISUAL UPDATE
+    // UPDATE WHEEL VISUALS
     // ======================================
     private void UpdateWheelVisual(Wheel w)
     {
         if (w.visual == null || w.collider == null) return;
-
         w.collider.GetWorldPose(out Vector3 pos, out Quaternion rot);
         w.visual.position = pos;
         w.visual.rotation = rot;
     }
 
-
     // ======================================
-    // ANTI-ROLL STABILIZER
+    // ANTI-ROLL SYSTEM
     // ======================================
     private void ApplyAntiRollBars()
     {
@@ -302,14 +288,14 @@ public class FormulaControler : MonoBehaviour
 
         AddBrakeTrigger(trigger, EventTriggerType.PointerDown, BrakeDown);
         AddBrakeTrigger(trigger, EventTriggerType.PointerUp, BrakeUp);
-        AddBrakeTrigger(trigger, EventTriggerType.PointerExit, BrakeUp); // release if pointer leaves
+        AddBrakeTrigger(trigger, EventTriggerType.PointerExit, BrakeUp);
 
         brakeEventsBound = true;
     }
 
     private void AddBrakeTrigger(EventTrigger trigger, EventTriggerType type, System.Action action)
     {
-        var entry = new EventTrigger.Entry { eventID = type, callback = new EventTrigger.TriggerEvent() };
+        var entry = new EventTrigger.Entry { eventID = type };
         entry.callback.AddListener(_ => action());
         trigger.triggers.Add(entry);
     }
@@ -318,7 +304,6 @@ public class FormulaControler : MonoBehaviour
     {
         if (throttleSlider == null) return;
 
-        // While braking, silence throttle and ease slider toward zero without snapping.
         if (brakePressed)
         {
             float newValue = Mathf.MoveTowards(throttleSlider.value, 0f, brakeSliderDecayPerSecond * Time.deltaTime);
@@ -327,12 +312,65 @@ public class FormulaControler : MonoBehaviour
             return;
         }
 
-        // Smoothly reset slider to 0 when released
         if (!sliderHeld)
         {
             float newValue = Mathf.Lerp(throttleSlider.value, 0f, Time.deltaTime * 4f);
             throttleSlider.SetValueWithoutNotify(newValue);
             targetSpeed = newValue * maxSpeedMS;
         }
+    }
+
+    private void ConfigureSuspension()
+    {
+        if (wheels == null) return;
+
+        foreach (var w in wheels)
+        {
+            if (w.collider == null) continue;
+
+            w.collider.suspensionDistance *= Mathf.Max(0.05f, suspensionDistanceFactor);
+
+            var spring = w.collider.suspensionSpring;
+            spring.spring *= suspensionSpringMultiplier;
+            spring.damper *= suspensionDamperMultiplier;
+            w.collider.suspensionSpring = spring;
+        }
+    }
+
+    private void EnableTiltDevices()
+    {
+        // Ensure mobile sensors are on so the Tilt action receives values
+        if (Accelerometer.current != null && !Accelerometer.current.enabled)
+            InputSystem.EnableDevice(Accelerometer.current);
+
+        if (AttitudeSensor.current != null && !AttitudeSensor.current.enabled)
+            InputSystem.EnableDevice(AttitudeSensor.current);
+    }
+
+    private float ReadTilt()
+    {
+        Vector3 tilt = Vector3.zero;
+        bool hasTilt = false;
+
+        // Preferred path: use the bound Tilt action
+        if (tiltAction != null && tiltAction.enabled)
+        {
+            tilt = tiltAction.ReadValue<Vector3>();
+            hasTilt = tilt != Vector3.zero || tiltAction.activeControl != null;
+        }
+
+        // Fallback: read raw accelerometer
+        if (!hasTilt && Accelerometer.current != null)
+        {
+            tilt = Accelerometer.current.acceleration.ReadValue();
+            hasTilt = true;
+        }
+
+        // Only use X (roll) for steering; ignore Y/Z completely
+        float steer = tilt.x;
+        if (Mathf.Abs(steer) < tiltDeadzone)
+            steer = 0f;
+
+        return steer * tiltSteerSensitivity;
     }
 }
