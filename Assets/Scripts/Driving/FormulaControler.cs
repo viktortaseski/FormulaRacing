@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;   // new Input System
+using UnityEngine.EventSystems;
 
 public class FormulaControler : MonoBehaviour
 {
@@ -22,6 +23,8 @@ public class FormulaControler : MonoBehaviour
     private float targetSpeed = 0f;       // in m/s
     public float maxSpeedKPH = 360f;      // top speed in km/h
     public float speedHoldAssist = 10f;   // speed regulation strength
+    public float reverseEntryKPH = 10f;   // if braking below this, engage reverse
+    public float brakeSliderDecayPerSecond = 2f; // how fast the slider eases down while braking
 
 
     // ======================================
@@ -68,6 +71,8 @@ public class FormulaControler : MonoBehaviour
     private InputActionMap playerMap;
     private InputAction moveAction;
     private Vector2 moveInput;
+    private float maxSpeedMS;
+    private bool brakeEventsBound = false;
 
 
     // ======================================
@@ -79,6 +84,7 @@ public class FormulaControler : MonoBehaviour
 
         // Lower center of mass
         rb.centerOfMass = new Vector3(0f, -0.3f, 0f);
+        maxSpeedMS = maxSpeedKPH / 3.6f;
 
         if (inputActions != null)
         {
@@ -97,12 +103,7 @@ public class FormulaControler : MonoBehaviour
         if (throttleSlider != null)
             throttleSlider.onValueChanged.AddListener(OnThrottleChanged);
 
-        // Bind brake button
-        if (brakeButton != null)
-        {
-            brakeButton.onClick.AddListener(() => { brakePressed = true; });
-            brakeButton.onClick.AddListener(() => { Invoke("ReleaseBrake", 0.1f); });
-        }
+        BindBrakeButtonHold();
 
         // Bind input actions
         if (playerMap == null || moveAction == null) return;
@@ -114,6 +115,11 @@ public class FormulaControler : MonoBehaviour
 
     private void OnDisable()
     {
+        if (throttleSlider != null)
+            throttleSlider.onValueChanged.RemoveListener(OnThrottleChanged);
+
+        BrakeUp();
+
         if (playerMap == null || moveAction == null) return;
 
         moveAction.performed -= OnMove;
@@ -127,17 +133,14 @@ public class FormulaControler : MonoBehaviour
     }
 
 
-    private void ReleaseBrake()
-    {
-        brakePressed = false;
-    }
+    private void BrakeDown() => brakePressed = true;
+    private void BrakeUp() => brakePressed = false;
 
 
     private void OnThrottleChanged(float value)
     {
         sliderHeld = true;
 
-        float maxSpeedMS = maxSpeedKPH / 3.6f;
         targetSpeed = value * maxSpeedMS;
     }
 
@@ -157,11 +160,7 @@ public class FormulaControler : MonoBehaviour
     // ======================================
     private void Update()
     {
-        // Smoothly reset slider to 0 when released
-        if (throttleSlider != null && !sliderHeld)
-        {
-            throttleSlider.value = Mathf.Lerp(throttleSlider.value, 0f, Time.deltaTime * 4f);
-        }
+        HandleSliderDecay();
     }
 
 
@@ -177,26 +176,24 @@ public class FormulaControler : MonoBehaviour
         float currentSpeed = rb.linearVelocity.magnitude;
         float throttleTorque = 0f;
         float brakeInput = 0f;
+        float reverseEntryMS = reverseEntryKPH / 3.6f;
 
         // ======================================
         // 2. BRAKE OVERRIDES EVERYTHING
         // ======================================
         if (brakePressed)
         {
-            // Force slider UI to zero WITHOUT triggering event
-            if (throttleSlider != null)
-                throttleSlider.SetValueWithoutNotify(0f);
-
-            sliderHeld = false;
-            targetSpeed = 0f;
-
-            // Full brake torque
-            throttleTorque = 0f;
-            brakeInput = 1f;
-
-            // Reverse if stopped
-            if (currentSpeed < 1f)
-                throttleTorque = -1f;
+            // If still moving forward, apply brakes. Once slow enough, drive reverse.
+            if (currentSpeed > reverseEntryMS)
+            {
+                throttleTorque = 0f;
+                brakeInput = 1f;
+            }
+            else
+            {
+                throttleTorque = -1f; // engage reverse while holding brake
+                brakeInput = 0f;
+            }
         }
         else
         {
@@ -288,5 +285,54 @@ public class FormulaControler : MonoBehaviour
         if (groundedR)
             rb.AddForceAtPosition(right.transform.up * antiRollForce, right.transform.position);
     }
-}
 
+    // ======================================
+    // HELPERS
+    // ======================================
+    private void BindBrakeButtonHold()
+    {
+        if (brakeButton == null || brakeEventsBound) return;
+
+        var trigger = brakeButton.GetComponent<EventTrigger>();
+        if (trigger == null)
+            trigger = brakeButton.gameObject.AddComponent<EventTrigger>();
+
+        if (trigger.triggers == null)
+            trigger.triggers = new System.Collections.Generic.List<EventTrigger.Entry>();
+
+        AddBrakeTrigger(trigger, EventTriggerType.PointerDown, BrakeDown);
+        AddBrakeTrigger(trigger, EventTriggerType.PointerUp, BrakeUp);
+        AddBrakeTrigger(trigger, EventTriggerType.PointerExit, BrakeUp); // release if pointer leaves
+
+        brakeEventsBound = true;
+    }
+
+    private void AddBrakeTrigger(EventTrigger trigger, EventTriggerType type, System.Action action)
+    {
+        var entry = new EventTrigger.Entry { eventID = type, callback = new EventTrigger.TriggerEvent() };
+        entry.callback.AddListener(_ => action());
+        trigger.triggers.Add(entry);
+    }
+
+    private void HandleSliderDecay()
+    {
+        if (throttleSlider == null) return;
+
+        // While braking, silence throttle and ease slider toward zero without snapping.
+        if (brakePressed)
+        {
+            float newValue = Mathf.MoveTowards(throttleSlider.value, 0f, brakeSliderDecayPerSecond * Time.deltaTime);
+            throttleSlider.SetValueWithoutNotify(newValue);
+            targetSpeed = newValue * maxSpeedMS;
+            return;
+        }
+
+        // Smoothly reset slider to 0 when released
+        if (!sliderHeld)
+        {
+            float newValue = Mathf.Lerp(throttleSlider.value, 0f, Time.deltaTime * 4f);
+            throttleSlider.SetValueWithoutNotify(newValue);
+            targetSpeed = newValue * maxSpeedMS;
+        }
+    }
+}
