@@ -250,19 +250,9 @@ public class FormulaControler : MonoBehaviour
     private void UpdateWheelVisual(Wheel w)
     {
         if (w.visual == null || w.collider == null) return;
-        w.collider.GetWorldPose(out Vector3 pos, out Quaternion rot);
-        w.visual.position = pos;
 
-        if (w.axle == Axle.Rear)
-        {
-            Vector3 euler = rot.eulerAngles;
-            euler.y = w.initialVisualRotation.eulerAngles.y;
-            w.visual.rotation = Quaternion.Euler(euler);
-        }
-        else
-        {
-            w.visual.rotation = rot;
-        }
+        w.collider.GetWorldPose(out Vector3 pos, out Quaternion rot);
+        w.visual.SetPositionAndRotation(pos, rot);
     }
 
     // ======================================
