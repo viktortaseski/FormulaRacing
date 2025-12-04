@@ -44,6 +44,8 @@ public class FormulaControler : MonoBehaviour
     [Header("Car settings")]
     public float maxMotorTorque = 2000f;
     public float brakeTorque = 4000f;
+    public float maxReverseSpeedKPH = 120f;
+    public float reverseTorqueMultiplier = 1.5f;
 
     [Header("Steering")]
     public float maxSteerAngle = 30f;
@@ -190,6 +192,7 @@ public class FormulaControler : MonoBehaviour
         float throttleTorque = 0f;
         float brakeInput = 0f;
         float reverseEntryMS = reverseEntryKPH / 3.6f;
+        float maxReverseMS = maxReverseSpeedKPH / 3.6f;
 
         float allowedSteerAngle = GetSpeedAdjustedSteerAngle(currentSpeed);
         float targetSteerAngle = steerInput * allowedSteerAngle;
@@ -200,12 +203,12 @@ public class FormulaControler : MonoBehaviour
         {
             if (currentSpeed > reverseEntryMS)
             {
-                throttleTorque = 0f;
+                //throttleTorque = 0f;
                 brakeInput = 1f;
             }
             else
             {
-                throttleTorque = -1f;
+                throttleTorque = (currentSpeed < maxReverseMS) ? -reverseTorqueMultiplier : 0f;
                 brakeInput = 0f;
             }
         }
@@ -237,7 +240,7 @@ public class FormulaControler : MonoBehaviour
             else
                 w.collider.steerAngle = 0f;   // lock rear steering
 
-            w.collider.motorTorque = throttleTorque * maxMotorTorque;
+            w.collider.motorTorque = (w.axle == Axle.Rear) ? throttleTorque * maxMotorTorque : 0f;
             w.collider.brakeTorque = brakeInput * brakeTorque;
 
             UpdateWheelVisual(w);
@@ -323,7 +326,7 @@ public class FormulaControler : MonoBehaviour
         if (brakePressed)
         {
             float newValue = Mathf.MoveTowards(throttleSlider.value, 0f, brakeSliderDecayPerSecond * Time.deltaTime);
-            throttleSlider.SetValueWithoutNotify(newValue);
+            //throttleSlider.SetValueWithoutNotify(newValue);
             targetSpeed = newValue * maxSpeedMS;
             return;
         }
