@@ -14,13 +14,44 @@ public class SpeedDisplay : MonoBehaviour
     [Header("Settings")]
     public bool showInKPH = true;       // toggle km/h vs m/s
 
+    private Vector3 _lastPosition;
+    private bool _hasLastPosition = false;
+    private float _currentSpeedMS = 0f;
+
+    private void OnEnable()
+    {
+        if (targetRigidbody != null)
+        {
+            _lastPosition = targetRigidbody.position;
+            _hasLastPosition = true;
+        }
+    }
+
+    private void FixedUpdate()
+    {
+        if (targetRigidbody == null)
+            return;
+
+        if (!_hasLastPosition)
+        {
+            _lastPosition = targetRigidbody.position;
+            _hasLastPosition = true;
+            return;
+        }
+
+        Vector3 delta = targetRigidbody.position - _lastPosition;
+        float frameSpeed = delta.magnitude / Mathf.Max(Time.fixedDeltaTime, 0.0001f);
+        _currentSpeedMS = frameSpeed;
+        _lastPosition = targetRigidbody.position;
+    }
+
     private void Update()
     {
         if (targetRigidbody == null || speedText == null)
             return;
 
-        // Speed in m/s
-        float speedMS = targetRigidbody.linearVelocity.magnitude;
+        // Use measured displacement per physics tick to match on-screen movement.
+        float speedMS = _currentSpeedMS;
 
         float speed = showInKPH ? speedMS * 3.6f : speedMS;
         string unit = showInKPH ? "km/h" : "m/s";

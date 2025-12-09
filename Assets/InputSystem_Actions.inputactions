@@ -486,10 +486,10 @@
                 {
                     "name": "",
                     "id": "37c4203e-da2a-4cba-ae4f-4f6ea6ea4994",
-                    "path": "<Sensor>/{Tilt}",
+                    "path": "<Accelerometer>/acceleration{x}",
                     "interactions": "",
                     "processors": "",
-                    "groups": "",
+                    "groups": ";Gamepad",
                     "action": "Tilt",
                     "isComposite": false,
                     "isPartOfComposite": false

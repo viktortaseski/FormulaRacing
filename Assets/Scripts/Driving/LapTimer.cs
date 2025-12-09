@@ -56,7 +56,6 @@ public class LapTimer : MonoBehaviour
             carRigidbody = GetComponent<Rigidbody>();
 
         ResetTimersUI();
-        HandleFinishLine();
     }
 
     private void Update()
