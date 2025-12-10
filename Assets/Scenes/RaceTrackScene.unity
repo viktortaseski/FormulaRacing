@@ -3817,7 +3817,7 @@ AudioSource:
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 0}
-  m_Resource: {fileID: 0}
+  m_Resource: {fileID: 8300000, guid: 0342282ba013d41fcbafaaf7105ec437, type: 3}
   m_PlayOnAwake: 0
   m_Volume: 0.734
   m_Pitch: 1
@@ -16898,8 +16898,8 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 1700315949671598895}
   - {fileID: 180557025}
+  - {fileID: 1700315949671598895}
   - {fileID: 2072416009}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: -90, z: 0}
@@ -28226,9 +28226,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FormulaAudio
   physics: {fileID: 9012783402158260859}
-  engineIdleSource: {fileID: 0}
-  engineAccelSource: {fileID: 0}
-  gearShiftSource: {fileID: 0}
+  engineIdleSource: {fileID: 410022846}
+  engineAccelSource: {fileID: 1456834083}
+  gearShiftSource: {fileID: 2125586618}
   minPitch: 0.85
   maxPitch: 2.2
   accelVolumeBoost: 1.2
