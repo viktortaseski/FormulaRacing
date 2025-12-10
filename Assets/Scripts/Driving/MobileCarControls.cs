@@ -22,6 +22,10 @@ public class MobileCarControls : MonoBehaviour
     public float tiltMaxG = 0.35f;
     [Tooltip("Ignore small tilt under this value (in g).")]
     public float tiltDeadzone = 0.05f;
+    [Tooltip("Exponent > 1 softens small tilts; 1 = linear.")]
+    [Range(1f, 3f)] public float tiltExponent = 1.6f;
+    [Tooltip("Hard cap on steering output from tilt (0..1).")]
+    [Range(0.1f, 1f)] public float maxSteerOutput = 0.85f;
     [Tooltip("How smoothly steering follows tilt.")]
     public float steerSmoothing = 5f;
 
@@ -89,7 +93,7 @@ public class MobileCarControls : MonoBehaviour
 
         // Assume phone in LANDSCAPE with the top of the phone to the left:
         // tilting the top of the phone DOWN should steer right.
-        float raw = -acc.y; // try x first; if steering feels wrong, swap to acc.y or negate
+        float raw = acc.y; // try x first; if steering feels wrong, swap to acc.y or negate
 
         // Deadzone
         if (Mathf.Abs(raw) < tiltDeadzone)
@@ -97,8 +101,11 @@ public class MobileCarControls : MonoBehaviour
 
         // Normalize by maxG so that when |accel| = tiltMaxG, steer = ±1
         float normalized = Mathf.Clamp(raw / tiltMaxG, -1f, 1f);
+        // Apply exponential to calm center feel, then cap so tiny tilts don't give full lock
+        float curved = Mathf.Sign(normalized) * Mathf.Pow(Mathf.Abs(normalized), tiltExponent);
+        float limited = Mathf.Clamp(curved, -maxSteerOutput, maxSteerOutput);
 
-        return normalized;
+        return limited;
     }
 
     // ----------------------------

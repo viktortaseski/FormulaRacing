@@ -55,12 +55,18 @@ public class FormulaPhysics : MonoBehaviour
     );
 
     [Tooltip("Max wheel torque per wheel (for stability).")]
-    public float maxWheelTorque = 8000f;
+    public float maxWheelTorque = 4000f;
 
 
     [Header("Steering")]
-    [Tooltip("Max steering angle in degrees.")]
+    [Tooltip("Max steering angle in degrees at low speed.")]
     public float maxSteerAngle = 30f;
+    [Tooltip("Max steering angle allowed at high speed to avoid scrubbing all speed.")]
+    public float highSpeedSteerAngle = 12f;
+    [Tooltip("Speed (KPH) where we start fading steering lock.")]
+    public float steerFadeStartKPH = 80f;
+    [Tooltip("Speed (KPH) where steering lock reaches high-speed value.")]
+    public float steerFadeEndKPH = 260f;
     [Tooltip("How quickly wheels follow steering input.")]
     public float steerResponse = 8f;
 
@@ -72,6 +78,14 @@ public class FormulaPhysics : MonoBehaviour
     [Header("Tyre Friction Tuning")]
     public float forwardStiffness = 2.5f;
     public float sidewaysStiffness = 2.0f;
+    [Tooltip("Sideways stiffness multiplier when at very high speed (reduces grip so you slide instead of bogging down).")]
+    [Range(0.1f, 1f)] public float highSpeedSidewaysMultiplier = 0.7f;
+    [Tooltip("Sideways stiffness multiplier when at full steering input (adds progressive slip).")]
+    [Range(0.1f, 1f)] public float fullSteerSidewaysMultiplier = 0.85f;
+    [Tooltip("Speed (KPH) where lateral grip starts to bleed off.")]
+    public float gripFadeStartKPH = 120f;
+    [Tooltip("Speed (KPH) where lateral grip hits the high-speed multiplier.")]
+    public float gripFadeEndKPH = 280f;
 
     [Header("Aero")]
     [Tooltip("Downforce coefficient. Force ~ k * v^2.")]
@@ -135,6 +149,7 @@ public class FormulaPhysics : MonoBehaviour
         // Update speed for info
         speedKPH = rb.linearVelocity.magnitude * 3.6f;
 
+        UpdateDynamicFriction();
         UpdateEngineRPM();
         AutoGearbox();
 
@@ -151,7 +166,7 @@ public class FormulaPhysics : MonoBehaviour
     // =========================
     // FRICTION
     // =========================
-    private void ConfigureWheelFriction(WheelCollider wc)
+    private void ConfigureWheelFriction(WheelCollider wc, float sidewaysOverride = -1f)
     {
         if (wc == null) return;
 
@@ -168,8 +183,24 @@ public class FormulaPhysics : MonoBehaviour
         s.extremumValue = 1.0f;
         s.asymptoteSlip = 0.5f;
         s.asymptoteValue = 0.75f;
-        s.stiffness = sidewaysStiffness;
+        float sideStiff = sidewaysOverride > 0f ? sidewaysOverride : sidewaysStiffness;
+        s.stiffness = Mathf.Max(0.01f, sideStiff);
         wc.sidewaysFriction = s;
+    }
+
+    private void UpdateDynamicFriction()
+    {
+        // Reduce lateral grip at very high speed and when at big steering angles,
+        // so the car slides instead of getting bogged down and speed-limited.
+        float speedGripT = Mathf.InverseLerp(gripFadeStartKPH, gripFadeEndKPH, speedKPH);
+        float speedGripMul = Mathf.Lerp(1f, highSpeedSidewaysMultiplier, speedGripT);
+        float steerGripMul = Mathf.Lerp(1f, fullSteerSidewaysMultiplier, Mathf.Abs(steeringInput));
+        float dynamicSideways = sidewaysStiffness * speedGripMul * steerGripMul;
+
+        ConfigureWheelFriction(frontLeft, dynamicSideways);
+        ConfigureWheelFriction(frontRight, dynamicSideways);
+        ConfigureWheelFriction(rearLeft, dynamicSideways);
+        ConfigureWheelFriction(rearRight, dynamicSideways);
     }
 
 
@@ -240,6 +271,7 @@ public class FormulaPhysics : MonoBehaviour
         float wheelTorque = driveTorque * 0.5f;
 
 
+
         rearLeft.motorTorque = wheelTorque;
         rearRight.motorTorque = wheelTorque;
     }
@@ -262,7 +294,11 @@ public class FormulaPhysics : MonoBehaviour
         if (frontLeft == null || frontRight == null)
             return;
 
-        float targetSteer = steeringInput * maxSteerAngle;
+        float steerFadeT = Mathf.InverseLerp(steerFadeStartKPH, steerFadeEndKPH, speedKPH);
+        float maxSteer = Mathf.Lerp(maxSteerAngle, highSpeedSteerAngle, steerFadeT);
+        maxSteer = Mathf.Max(0f, maxSteer);
+
+        float targetSteer = steeringInput * maxSteer;
 
         _smoothSteerL = Mathf.Lerp(_smoothSteerL, targetSteer, steerResponse * Time.fixedDeltaTime);
         _smoothSteerR = Mathf.Lerp(_smoothSteerR, targetSteer, steerResponse * Time.fixedDeltaTime);
