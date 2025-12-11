@@ -6,23 +6,21 @@ public class CarControls : MonoBehaviour
     public FormulaPhysics car;
 
     [Header("Input Settings")]
-    [Tooltip("Name of horizontal axis (Project Settings -> Input Manager).")]
     public string steerAxis = "Horizontal";
-
-    [Tooltip("Name of vertical axis for throttle/brake.")]
     public string moveAxis = "Vertical";
 
-    [Tooltip("Extra brake when holding Space.")]
     public KeyCode extraBrakeKey = KeyCode.Space;
+    [Range(0f, 1f)] public float extraBrakeAmount = 0.7f;
 
-    [Range(0f, 1f)]
-    public float extraBrakeAmount = 0.7f;
+    private Rigidbody carRb;
 
-    private void Reset()
+    private void Awake()
     {
-        // Auto-assign physics on same GameObject
         if (car == null)
             car = GetComponent<FormulaPhysics>();
+
+        if (car != null)
+            carRb = car.rb;
     }
 
     private void Update()
@@ -30,22 +28,48 @@ public class CarControls : MonoBehaviour
         if (car == null)
             return;
 
-        // Keyboard / gamepad axes
-        float steer = Input.GetAxis(steerAxis);   // A/D or left stick X
-        float move = Input.GetAxis(moveAxis);     // W/S or left stick Y
+        float steer = Input.GetAxis(steerAxis);
+        float move = Input.GetAxis(moveAxis); // W/S or stick Y
 
         float throttle = 0f;
         float brake = 0f;
 
-        if (move >= 0f)
+        // forward speed in local Z direction (positive = going forward)
+        float localZ = 0f;
+        if (carRb != null)
+            localZ = Vector3.Dot(carRb.linearVelocity, car.transform.forward);
+
+        if (move > 0f)
         {
-            throttle = move;
-            brake = 0f;
+            // player wants to go forward
+            if (localZ < -1f)
+            {
+                // we're actually rolling backwards → W should brake
+                throttle = 0f;
+                brake = move;
+            }
+            else
+            {
+                // stopped or already moving forward → normal throttle
+                throttle = move;
+                brake = 0f;
+            }
         }
-        else
+        else if (move < 0f)
         {
-            throttle = 0f;
-            brake = -move; // pressing S = brake
+            // player wants to go backwards
+            if (localZ > 1f)
+            {
+                // still moving forward fast → S should brake
+                throttle = 0f;
+                brake = -move;
+            }
+            else
+            {
+                // stopped or already going backwards → reverse throttle
+                throttle = move;   // negative value
+                brake = 0f;
+            }
         }
 
         if (Input.GetKey(extraBrakeKey))

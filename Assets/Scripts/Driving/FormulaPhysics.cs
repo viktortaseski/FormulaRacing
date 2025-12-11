@@ -55,20 +55,20 @@ public class FormulaPhysics : MonoBehaviour
     );
 
     [Tooltip("Max wheel torque per wheel (for stability).")]
-    public float maxWheelTorque = 4000f;
+    public float maxWheelTorque = 2500f;
 
 
     [Header("Steering")]
     [Tooltip("Max steering angle in degrees at low speed.")]
     public float maxSteerAngle = 30f;
     [Tooltip("Max steering angle allowed at high speed to avoid scrubbing all speed.")]
-    public float highSpeedSteerAngle = 12f;
+    public float highSpeedSteerAngle = 22f;
     [Tooltip("Speed (KPH) where we start fading steering lock.")]
-    public float steerFadeStartKPH = 80f;
+    public float steerFadeStartKPH = 160f;
     [Tooltip("Speed (KPH) where steering lock reaches high-speed value.")]
-    public float steerFadeEndKPH = 260f;
+    public float steerFadeEndKPH = 340f;
     [Tooltip("How quickly wheels follow steering input.")]
-    public float steerResponse = 8f;
+    public float steerResponse = 4f;
 
     [Header("Brakes")]
     [Tooltip("Max brake torque (Nm) per wheel.")]
@@ -76,8 +76,8 @@ public class FormulaPhysics : MonoBehaviour
 
 
     [Header("Tyre Friction Tuning")]
-    public float forwardStiffness = 2.5f;
-    public float sidewaysStiffness = 2.0f;
+    public float forwardStiffness = 1.3f;
+    public float sidewaysStiffness = 2.2f;
     [Tooltip("Sideways stiffness multiplier when at very high speed (reduces grip so you slide instead of bogging down).")]
     [Range(0.1f, 1f)] public float highSpeedSidewaysMultiplier = 0.7f;
     [Tooltip("Sideways stiffness multiplier when at full steering input (adds progressive slip).")]
@@ -93,7 +93,7 @@ public class FormulaPhysics : MonoBehaviour
 
     [Header("Inputs (from controls scripts)")]
     [Range(-1f, 1f)] public float steeringInput;  // -1..1
-    [Range(0f, 1f)] public float throttleInput;  // 0..1
+    [Range(-1f, 1f)] public float throttleInput;  // 0..1
     [Range(0f, 1f)] public float brakeInput;     // 0..1
 
     [Header("Debug (read-only)")]
@@ -112,7 +112,7 @@ public class FormulaPhysics : MonoBehaviour
     public void SetInputs(float steer, float throttle, float brake)
     {
         steeringInput = Mathf.Clamp(steer, -1f, 1f);
-        throttleInput = Mathf.Clamp01(throttle);
+        throttleInput = Mathf.Clamp(throttle, -1f, 1f);
         brakeInput = Mathf.Clamp01(brake);
     }
 
@@ -190,18 +190,21 @@ public class FormulaPhysics : MonoBehaviour
 
     private void UpdateDynamicFriction()
     {
-        // Reduce lateral grip at very high speed and when at big steering angles,
-        // so the car slides instead of getting bogged down and speed-limited.
+        // Less aggressive grip loss so car is stable
         float speedGripT = Mathf.InverseLerp(gripFadeStartKPH, gripFadeEndKPH, speedKPH);
-        float speedGripMul = Mathf.Lerp(1f, highSpeedSidewaysMultiplier, speedGripT);
-        float steerGripMul = Mathf.Lerp(1f, fullSteerSidewaysMultiplier, Mathf.Abs(steeringInput));
-        float dynamicSideways = sidewaysStiffness * speedGripMul * steerGripMul;
+        float mulSpeed = Mathf.Lerp(1f, highSpeedSidewaysMultiplier, speedGripT);
+        float mulSteer = Mathf.Lerp(1f, fullSteerSidewaysMultiplier, Mathf.Abs(steeringInput));
 
-        ConfigureWheelFriction(frontLeft, dynamicSideways);
-        ConfigureWheelFriction(frontRight, dynamicSideways);
-        ConfigureWheelFriction(rearLeft, dynamicSideways);
-        ConfigureWheelFriction(rearRight, dynamicSideways);
+        float sideways = sidewaysStiffness * mulSpeed * mulSteer;
+
+        // same friction front & rear (we'll tweak later if needed)
+        ConfigureWheelFriction(frontLeft, sideways);
+        ConfigureWheelFriction(frontRight, sideways);
+        ConfigureWheelFriction(rearLeft, sideways);
+        ConfigureWheelFriction(rearRight, sideways);
     }
+
+
 
 
     // =========================
@@ -260,21 +263,29 @@ public class FormulaPhysics : MonoBehaviour
         if (rearLeft == null || rearRight == null || gearRatios.Length == 0)
             return;
 
+        // no throttle = no drive
+        if (Mathf.Approximately(throttleInput, 0f))
+        {
+            rearLeft.motorTorque = 0f;
+            rearRight.motorTorque = 0f;
+            return;
+        }
+
         float gearRatio = gearRatios[Mathf.Clamp(currentGear, 0, gearRatios.Length - 1)];
 
-        // Throttle → engine torque → wheel torque
         float baseTorque = engineTorqueCurve.Evaluate(engineRPM);
-        float engineTorque = baseTorque * throttleInput;
+        float engineTorque = baseTorque * Mathf.Abs(throttleInput);  // torque magnitude
+        float direction = Mathf.Sign(throttleInput);              // +1 forward, -1 reverse
 
-        float driveTorque = engineTorque * gearRatio * finalDriveRatio;
+        float driveTorque = engineTorque * gearRatio * finalDriveRatio * direction;
         driveTorque = Mathf.Clamp(driveTorque, -maxWheelTorque * 2f, maxWheelTorque * 2f);
-        float wheelTorque = driveTorque * 0.5f;
 
-
+        float wheelTorque = driveTorque * 0.5f;   // two driven wheels
 
         rearLeft.motorTorque = wheelTorque;
         rearRight.motorTorque = wheelTorque;
     }
+
 
     private void ApplyBrakes()
     {
