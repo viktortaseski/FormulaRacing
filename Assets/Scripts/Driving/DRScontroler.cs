@@ -32,6 +32,16 @@ public class DRScontroler : MonoBehaviour
     [Tooltip("Cooldown after DRS use (seconds). Set to 0 for no cooldown (for testing).")]
     public float drsCooldownSeconds = 40f;
 
+    [Header("DRS Aero")]
+    [Range(0.1f, 1f)] public float drsDownforceMultiplier = 0.55f; // 45% less downforce
+    [Range(1f, 2f)] public float drsEngineTorqueMultiplier = 1.10f; // +10% torque
+
+    private float _origEngineMul = 1f;
+    private float _origDownMul = 1f;
+    private bool _cachedOriginals = false;
+
+
+
     [Header("DRS Boost")]
     [Tooltip("How much extra wheel torque to give during DRS. 1 = no change, 1.5 = +50%, 2 = double.")]
     public float torqueBoostMultiplier = 1.5f;
@@ -77,11 +87,23 @@ public class DRScontroler : MonoBehaviour
         UpdateButtonVisual();   // disable button visually
 
         // Cache original torque once
+        if (!_cachedOriginals)
+        {
+            _origEngineMul = carPhysics.engineTorqueMultiplier;
+            _origDownMul = carPhysics.downforceMultiplier;
+            _cachedOriginals = true;
+        }
+
         if (!_cachedOriginalTorque)
         {
             _originalMaxWheelTorque = carPhysics.maxWheelTorque;
             _cachedOriginalTorque = true;
         }
+
+
+        carPhysics.engineTorqueMultiplier = _origEngineMul * drsEngineTorqueMultiplier;
+        carPhysics.downforceMultiplier = _origDownMul * drsDownforceMultiplier;
+
 
         // === 1. Open DRS flap ===
         Vector3 euler = drsFlap.localEulerAngles;
@@ -101,6 +123,9 @@ public class DRScontroler : MonoBehaviour
 
         // === 4. Restore torque ===
         carPhysics.maxWheelTorque = _originalMaxWheelTorque;
+        carPhysics.engineTorqueMultiplier = _origEngineMul;
+        carPhysics.downforceMultiplier = _origDownMul;
+
 
         _drsActive = false;
 
@@ -140,4 +165,3 @@ public class DRScontroler : MonoBehaviour
         }
     }
 }
-

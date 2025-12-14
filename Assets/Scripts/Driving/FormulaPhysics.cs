@@ -29,8 +29,8 @@ public class FormulaPhysics : MonoBehaviour
     [Tooltip("Auto downshift RPM.")]
     public float downshiftRPM = 7000f;
 
-    [Tooltip("Final drive ratio (diff).")]
-    public float finalDriveRatio = 3.6f;
+    [Tooltip("Final drive ratio (diff). Higher = shorter gearing (more revs per speed).")]
+    public float finalDriveRatio = 9.0f;
 
     [Tooltip("Forward gear ratios: index 0 = 1st gear.")]
     public float[] gearRatios = new float[]
@@ -62,7 +62,7 @@ public class FormulaPhysics : MonoBehaviour
     [Tooltip("Max steering angle in degrees at low speed.")]
     public float maxSteerAngle = 30f;
     [Tooltip("Max steering angle allowed at high speed to avoid scrubbing all speed.")]
-    public float highSpeedSteerAngle = 22f;
+    public float highSpeedSteerAngle = 6f;
     [Tooltip("Speed (KPH) where we start fading steering lock.")]
     public float steerFadeStartKPH = 160f;
     [Tooltip("Speed (KPH) where steering lock reaches high-speed value.")]
@@ -96,6 +96,11 @@ public class FormulaPhysics : MonoBehaviour
     [Range(-1f, 1f)] public float throttleInput;  // 0..1
     [Range(0f, 1f)] public float brakeInput;     // 0..1
 
+    [Header("Multipliers (for DRS, upgrades, etc.)")]
+    public float engineTorqueMultiplier = 1f;
+    public float downforceMultiplier = 1f;
+
+
     [Header("Debug (read-only)")]
     public float engineRPM;
     public float speedKPH;
@@ -111,6 +116,9 @@ public class FormulaPhysics : MonoBehaviour
     // =========================
     public void SetInputs(float steer, float throttle, float brake)
     {
+        steer = Mathf.Abs(steer) < 0.05f ? 0f : steer;
+        brake = brake < 0.02f ? 0f : brake;
+
         steeringInput = Mathf.Clamp(steer, -1f, 1f);
         throttleInput = Mathf.Clamp(throttle, -1f, 1f);
         brakeInput = Mathf.Clamp01(brake);
@@ -274,7 +282,8 @@ public class FormulaPhysics : MonoBehaviour
         float gearRatio = gearRatios[Mathf.Clamp(currentGear, 0, gearRatios.Length - 1)];
 
         float baseTorque = engineTorqueCurve.Evaluate(engineRPM);
-        float engineTorque = baseTorque * Mathf.Abs(throttleInput);  // torque magnitude
+        float engineTorque = baseTorque * engineTorqueMultiplier * Mathf.Abs(throttleInput);
+
         float direction = Mathf.Sign(throttleInput);              // +1 forward, -1 reverse
 
         float driveTorque = engineTorque * gearRatio * finalDriveRatio * direction;
@@ -321,8 +330,7 @@ public class FormulaPhysics : MonoBehaviour
     private void ApplyDownforce()
     {
         float speed = rb.linearVelocity.magnitude;
-        float downforce = downforceCoefficient * speed * speed;
-
+        float downforce = downforceCoefficient * downforceMultiplier * speed * speed;
         rb.AddForce(-transform.up * downforce, ForceMode.Force);
     }
 
