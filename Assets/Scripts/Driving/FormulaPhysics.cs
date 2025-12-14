@@ -24,13 +24,13 @@ public class FormulaPhysics : MonoBehaviour
     public float maxEngineRPM = 15000f;
 
     [Tooltip("Auto upshift RPM.")]
-    public float upshiftRPM = 13500f;
+    public float upshiftRPM = 13800f;
 
     [Tooltip("Auto downshift RPM.")]
-    public float downshiftRPM = 7000f;
+    public float downshiftRPM = 7200f;
 
     [Tooltip("Final drive ratio (diff). Higher = shorter gearing (more revs per speed).")]
-    public float finalDriveRatio = 9.0f;
+    public float finalDriveRatio = 6.0f;
 
     [Tooltip("Forward gear ratios: index 0 = 1st gear.")]
     public float[] gearRatios = new float[]
@@ -57,6 +57,20 @@ public class FormulaPhysics : MonoBehaviour
     [Tooltip("Max wheel torque per wheel (for stability).")]
     public float maxWheelTorque = 2500f;
 
+    [Header("Auto Shifting")]
+    [Tooltip("Seconds engine torque is cut during a shift.")]
+    public float shiftTime = 0.06f;
+    [Tooltip("Minimum time between shifts to avoid hunting.")]
+    public float minTimeBetweenShifts = 0.15f;
+    [Range(0f, 1f)] [Tooltip("Do not shift if throttle is below this (driver is coasting).")]
+    public float minThrottleForShift = 0.1f;
+    [Range(0f, 1f)] [Tooltip("Block downshifts when braking harder than this.")]
+    public float brakeDownshiftBlock = 0.5f;
+    [Tooltip("Block upshifts if either rear wheel slip exceeds this.")]
+    public float slipShiftThreshold = 0.25f;
+    [Tooltip("Multiplier applied to engine torque during a shift (0 = full cut).")]
+    public float shiftTorqueCutMultiplier = 0f;
+
 
     [Header("Steering")]
     [Tooltip("Max steering angle in degrees at low speed.")]
@@ -67,12 +81,20 @@ public class FormulaPhysics : MonoBehaviour
     public float steerFadeStartKPH = 160f;
     [Tooltip("Speed (KPH) where steering lock reaches high-speed value.")]
     public float steerFadeEndKPH = 340f;
-    [Tooltip("How quickly wheels follow steering input.")]
-    public float steerResponse = 4f;
+    [Tooltip("Multiplier on steering rate (1 = default speed).")]
+    public float steerResponse = 1f;
+    [Tooltip("Base steering rack rate in deg/sec (scaled by steerResponse).")]
+    public float steerRateDegPerSec = 360f;
 
     [Header("Brakes")]
     [Tooltip("Max brake torque (Nm) per wheel.")]
     public float maxBrakeTorque = 9000f;
+    [Range(0f, 1f)] [Tooltip("Front brake bias (0.6 = 60% front, 40% rear).")]
+    public float brakeBiasFront = 0.6f;
+    [Tooltip("Below this speed (kph), rear brakes ease off under throttle for burnouts/donuts.")]
+    public float burnoutReleaseSpeedKPH = 5f;
+    [Tooltip("Multiplier on rear brakes during burnout state (0 = free, 0.2 = light drag).")]
+    public float burnoutRearBrakeMultiplier = 0.1f;
 
 
     [Header("Tyre Friction Tuning")]
@@ -106,10 +128,16 @@ public class FormulaPhysics : MonoBehaviour
     public float speedKPH;
     public int currentGear = 0;       // 0 = 1st gear
     public float theoreticalTopSpeedKPH;
+    public bool isShifting;
+    public float shiftTimer;
+    [Tooltip("1-based gear number for debug/UI (1 = 1st).")]
+    public int displayGear;
 
     private float _wheelRadius;
     private float _smoothSteerL;
     private float _smoothSteerR;
+    private float _shiftCooldownTimer;
+    private float _shiftTorqueMul = 1f;
 
     // =========================
     // PUBLIC API (for controls)
@@ -169,6 +197,9 @@ public class FormulaPhysics : MonoBehaviour
         }
 
         ApplyDownforce();
+
+        // Update debug/UI gear display as 1-based
+        displayGear = currentGear + 1;
     }
 
     // =========================
@@ -243,24 +274,91 @@ public class FormulaPhysics : MonoBehaviour
         if (gearRatios.Length == 0)
             return;
 
-        // Don't shift when basically parked
-        if (speedKPH < 5f)
+        // Run timers first
+        if (shiftTimer > 0f)
         {
-            currentGear = 0;
+            shiftTimer -= Time.fixedDeltaTime;
+            if (shiftTimer <= 0f)
+            {
+                shiftTimer = 0f;
+                isShifting = false;
+                _shiftTorqueMul = 1f;   // restore torque
+            }
+        }
+
+        if (_shiftCooldownTimer > 0f)
+        {
+            _shiftCooldownTimer -= Time.fixedDeltaTime;
+        }
+
+        if (isShifting || _shiftCooldownTimer > 0f)
+            return;
+
+        // Avoid shifting when driver is coasting
+        if (Mathf.Abs(throttleInput) < minThrottleForShift)
+            return;
+
+        bool slipTooHigh = WheelSlipTooHigh();
+
+        // Upshift
+        if (!slipTooHigh && engineRPM > upshiftRPM && currentGear < gearRatios.Length - 1)
+        {
+            ShiftUp();
             return;
         }
 
-        // Upshift
-        if (engineRPM > upshiftRPM && currentGear < gearRatios.Length - 1)
-        {
-            currentGear++;
-        }
+        // Block downshifts if braking hard
+        if (brakeInput > brakeDownshiftBlock)
+            return;
 
         // Downshift
         if (engineRPM < downshiftRPM && currentGear > 0)
         {
-            currentGear--;
+            ShiftDown();
         }
+    }
+
+    private void ShiftUp()
+    {
+        currentGear = Mathf.Min(currentGear + 1, gearRatios.Length - 1);
+        BeginShift();
+    }
+
+    private void ShiftDown()
+    {
+        currentGear = Mathf.Max(currentGear - 1, 0);
+        BeginShift();
+    }
+
+    private void BeginShift()
+    {
+        isShifting = true;
+        shiftTimer = shiftTime;
+        _shiftTorqueMul = shiftTorqueCutMultiplier;
+        _shiftCooldownTimer = minTimeBetweenShifts;
+    }
+
+    private bool WheelSlipTooHigh()
+    {
+        bool slipping = false;
+        slipping |= WheelSlipExceeds(rearLeft);
+        slipping |= WheelSlipExceeds(rearRight);
+        return slipping;
+    }
+
+    private bool WheelSlipExceeds(WheelCollider wc)
+    {
+        if (wc == null)
+            return false;
+
+        if (wc.GetGroundHit(out WheelHit hit))
+        {
+            float slip = Mathf.Max(Mathf.Abs(hit.forwardSlip), Mathf.Abs(hit.sidewaysSlip));
+            return slip > slipShiftThreshold;
+        }
+
+        // No ground contact: treat as unstable to avoid shifting while airborne
+        return true;
     }
 
     // =========================
@@ -282,7 +380,7 @@ public class FormulaPhysics : MonoBehaviour
         float gearRatio = gearRatios[Mathf.Clamp(currentGear, 0, gearRatios.Length - 1)];
 
         float baseTorque = engineTorqueCurve.Evaluate(engineRPM);
-        float engineTorque = baseTorque * engineTorqueMultiplier * Mathf.Abs(throttleInput);
+        float engineTorque = baseTorque * engineTorqueMultiplier * _shiftTorqueMul * Mathf.Abs(throttleInput);
 
         float direction = Mathf.Sign(throttleInput);              // +1 forward, -1 reverse
 
@@ -300,10 +398,25 @@ public class FormulaPhysics : MonoBehaviour
     {
         float brakeTorque = brakeInput * maxBrakeTorque;
 
-        if (frontLeft != null) frontLeft.brakeTorque = brakeTorque;
-        if (frontRight != null) frontRight.brakeTorque = brakeTorque;
-        if (rearLeft != null) rearLeft.brakeTorque = brakeTorque;
-        if (rearRight != null) rearRight.brakeTorque = brakeTorque;
+        // distribute torque front/rear by bias
+        float frontBias = Mathf.Clamp01(brakeBiasFront);
+        float rearBias = 1f - frontBias;
+
+        bool allowBurnout = speedKPH < burnoutReleaseSpeedKPH && Mathf.Abs(throttleInput) > 0.1f && brakeInput > 0.05f;
+
+        float frontTorque = brakeTorque * frontBias;                      // per front wheel
+        float rearTorque = brakeTorque * rearBias;                        // per rear wheel
+
+        if (allowBurnout)
+        {
+            // keep fronts anchored, ease rear brakes so they can spin
+            rearTorque *= Mathf.Clamp01(burnoutRearBrakeMultiplier);
+        }
+
+        if (frontLeft != null) frontLeft.brakeTorque = frontTorque;
+        if (frontRight != null) frontRight.brakeTorque = frontTorque;
+        if (rearLeft != null) rearLeft.brakeTorque = rearTorque;
+        if (rearRight != null) rearRight.brakeTorque = rearTorque;
     }
 
     // =========================
@@ -320,8 +433,12 @@ public class FormulaPhysics : MonoBehaviour
 
         float targetSteer = steeringInput * maxSteer;
 
-        _smoothSteerL = Mathf.Lerp(_smoothSteerL, targetSteer, steerResponse * Time.fixedDeltaTime);
-        _smoothSteerR = Mathf.Lerp(_smoothSteerR, targetSteer, steerResponse * Time.fixedDeltaTime);
+        // Use a consistent steering rate (deg/sec) so it doesn't feel instant on big inputs or laggy on small inputs
+        float steerRate = steerRateDegPerSec * steerResponse;
+        float maxStep = steerRate * Time.fixedDeltaTime;
+
+        _smoothSteerL = Mathf.MoveTowards(_smoothSteerL, targetSteer, maxStep);
+        _smoothSteerR = Mathf.MoveTowards(_smoothSteerR, targetSteer, maxStep);
 
         frontLeft.steerAngle = _smoothSteerL;
         frontRight.steerAngle = _smoothSteerR;

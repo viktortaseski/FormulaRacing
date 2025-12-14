@@ -52,6 +52,8 @@ public class DRScontroler : MonoBehaviour
 
     private float _originalMaxWheelTorque;
     private bool _cachedOriginalTorque = false;
+    private float _originalDrag;
+    private bool _cachedOriginalDrag = false;
 
     private void Awake()
     {
@@ -94,6 +96,12 @@ public class DRScontroler : MonoBehaviour
             _cachedOriginals = true;
         }
 
+        if (!_cachedOriginalDrag && carPhysics.rb != null)
+        {
+            _originalDrag = carPhysics.rb.linearDamping;
+            _cachedOriginalDrag = true;
+        }
+
         if (!_cachedOriginalTorque)
         {
             _originalMaxWheelTorque = carPhysics.maxWheelTorque;
@@ -103,6 +111,8 @@ public class DRScontroler : MonoBehaviour
 
         carPhysics.engineTorqueMultiplier = _origEngineMul * drsEngineTorqueMultiplier;
         carPhysics.downforceMultiplier = _origDownMul * drsDownforceMultiplier;
+        if (carPhysics.rb != null && _cachedOriginalDrag)
+            carPhysics.rb.linearDamping = 0f;
 
 
         // === 1. Open DRS flap ===
@@ -125,6 +135,8 @@ public class DRScontroler : MonoBehaviour
         carPhysics.maxWheelTorque = _originalMaxWheelTorque;
         carPhysics.engineTorqueMultiplier = _origEngineMul;
         carPhysics.downforceMultiplier = _origDownMul;
+        if (carPhysics.rb != null && _cachedOriginalDrag)
+            carPhysics.rb.linearDamping = _originalDrag;
 
 
         _drsActive = false;

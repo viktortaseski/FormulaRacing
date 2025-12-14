@@ -24,6 +24,8 @@ public class MobileCarControls : MonoBehaviour
     public float tiltDeadzone = 0.05f;
     [Tooltip("Exponent > 1 softens small tilts; 1 = linear.")]
     [Range(1f, 3f)] public float tiltExponent = 1.6f;
+    [Tooltip("Global multiplier on tilt output (lower = less sensitive).")]
+    [Range(0.1f, 1f)] public float tiltOutputMultiplier = 0.6f;
     [Tooltip("Hard cap on steering output from tilt (0..1).")]
     [Range(0.1f, 1f)] public float maxSteerOutput = 0.85f;
     [Tooltip("How smoothly steering follows tilt.")]
@@ -31,6 +33,7 @@ public class MobileCarControls : MonoBehaviour
 
     private bool brakeHeld = false;
     private float currentSteer = 0f;
+    private Rigidbody carRb;
 
 
     private void Reset()
@@ -43,6 +46,12 @@ public class MobileCarControls : MonoBehaviour
 
     private void Awake()
     {
+        if (car == null)
+            car = GetComponent<FormulaPhysics>();
+
+        if (car != null)
+            carRb = car.rb;
+
         // Hook brake button events (we'll also show how to do via EventTrigger)
         if (brakeButton != null)
         {
@@ -59,14 +68,49 @@ public class MobileCarControls : MonoBehaviour
 
         // ----- THROTTLE -----
         float throttle = 0f;
+        float brake = 0f;
+
+        float move = 0f; // like Vertical axis in CarControls
         if (throttleSlider != null)
-        {
-            // Slider is assumed 0..1
-            throttle = Mathf.Clamp01(throttleSlider.value * throttleSensitivity);
-        }
+            move = Mathf.Clamp01(throttleSlider.value * throttleSensitivity);
 
         // ----- BRAKE -----
-        float brake = brakeHeld ? brakeStrength : 0f;
+        if (brakeHeld)
+            move = -Mathf.Clamp01(brakeStrength);
+
+        // Determine if brake button should brake or reverse (mirrors CarControls logic)
+        float localZ = 0f;
+        if (carRb != null)
+            localZ = Vector3.Dot(carRb.linearVelocity, car.transform.forward);
+
+        if (move > 0f)
+        {
+            // forward input
+            if (localZ < -1f)
+            {
+                throttle = 0f;
+                brake = move;   // pressing forward while rolling backward = brake
+            }
+            else
+            {
+                throttle = move;
+                brake = 0f;
+            }
+        }
+        else if (move < 0f)
+        {
+            // reverse input (brake button)
+            if (localZ > 1f)
+            {
+                throttle = 0f;
+                brake = -move; // braking if still going forward
+            }
+            else
+            {
+                throttle = move; // negative = reverse
+                brake = 0f;
+            }
+        }
 
         // ----- STEERING FROM TILT -----
         float targetSteer = ReadTiltSteer();
@@ -105,7 +149,7 @@ public class MobileCarControls : MonoBehaviour
         float curved = Mathf.Sign(normalized) * Mathf.Pow(Mathf.Abs(normalized), tiltExponent);
         float limited = Mathf.Clamp(curved, -maxSteerOutput, maxSteerOutput);
 
-        return limited;
+        return limited * tiltOutputMultiplier;
     }
 
     // ----------------------------
@@ -120,6 +164,13 @@ public class MobileCarControls : MonoBehaviour
     public void BrakeButtonUp()
     {
         brakeHeld = false;
+    }
+
+    private void LateUpdate()
+    {
+        // Keep rb ref alive if set later
+        if (carRb == null && car != null)
+            carRb = car.rb;
     }
 
     // Optional: short tap on brake button = quick brake pulse

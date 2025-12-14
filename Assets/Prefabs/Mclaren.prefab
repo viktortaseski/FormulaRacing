@@ -2663,7 +2663,6 @@ GameObject:
   - component: {fileID: 7994042522747610595}
   - component: {fileID: 1536508804738329879}
   - component: {fileID: 1652992393927734995}
-  - component: {fileID: 799810525545116558}
   - component: {fileID: 7205777584609781876}
   m_Layer: 0
   m_Name: Mclaren
@@ -2762,9 +2761,9 @@ MonoBehaviour:
   rearRight: {fileID: 5307698591758852485}
   minEngineRPM: 2500
   maxEngineRPM: 15000
-  upshiftRPM: 13500
-  downshiftRPM: 7000
-  finalDriveRatio: 9
+  upshiftRPM: 13800
+  downshiftRPM: 7200
+  finalDriveRatio: 6
   gearRatios:
   - 3.1
   - 2.3
@@ -2826,26 +2825,41 @@ MonoBehaviour:
     m_PostInfinity: 2
     m_RotationOrder: 4
   maxWheelTorque: 2500
+  shiftTime: 0.06
+  minTimeBetweenShifts: 0.15
+  minThrottleForShift: 0.1
+  brakeDownshiftBlock: 0.5
+  slipShiftThreshold: 0.25
+  shiftTorqueCutMultiplier: 0
   maxSteerAngle: 30
   highSpeedSteerAngle: 22
   steerFadeStartKPH: 160
   steerFadeEndKPH: 340
-  steerResponse: 5
+  steerResponse: 1
+  steerRateDegPerSec: 360
   maxBrakeTorque: 9000
+  brakeBiasFront: 0.6
+  burnoutReleaseSpeedKPH: 5
+  burnoutRearBrakeMultiplier: 0.1
   forwardStiffness: 1.2
   sidewaysStiffness: 2.2
-  highSpeedSidewaysMultiplier: 1
-  fullSteerSidewaysMultiplier: 1
-  gripFadeStartKPH: 999
-  gripFadeEndKPH: 1000
+  highSpeedSidewaysMultiplier: 0.7
+  fullSteerSidewaysMultiplier: 0.85
+  gripFadeStartKPH: 120
+  gripFadeEndKPH: 280
   downforceCoefficient: 3.5
   steeringInput: 0
   throttleInput: 0
   brakeInput: 0
+  engineTorqueMultiplier: 1
+  downforceMultiplier: 1
   engineRPM: 0
   speedKPH: 0
   currentGear: 0
   theoreticalTopSpeedKPH: 0
+  isShifting: 0
+  shiftTimer: 0
+  displayGear: 0
 --- !u!114 &7994042522747610595
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2915,25 +2929,6 @@ MonoBehaviour:
   tiltExponent: 1.6
   maxSteerOutput: 0.85
   steerSmoothing: 5
---- !u!114 &799810525545116558
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1280178623047098972}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b85011c5de5c54824a2834064e9f5199, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::FormulaAudio
-  physics: {fileID: 3984200202744095314}
-  engineIdleSource: {fileID: 9209157311836104283}
-  engineAccelSource: {fileID: 7436634269721795480}
-  gearShiftSource: {fileID: 3345083070395226026}
-  minPitch: 0.85
-  maxPitch: 2.2
-  accelVolumeBoost: 1.2
 --- !u!114 &7205777584609781876
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2954,6 +2949,8 @@ MonoBehaviour:
   openAngleX: -40
   drsDurationSeconds: 3
   drsCooldownSeconds: 2
+  drsDownforceMultiplier: 0.55
+  drsEngineTorqueMultiplier: 1.1
   torqueBoostMultiplier: 1.6
 --- !u!1 &1307223381371397632
 GameObject:
