@@ -4430,6 +4430,10 @@ PrefabInstance:
       value: Mclaren
       objectReference: {fileID: 0}
     - target: {fileID: 1652992393927734995, guid: 50349d707663b4667acda6225249752d, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1652992393927734995, guid: 50349d707663b4667acda6225249752d, type: 3}
       propertyPath: brakeButton
       value: 
       objectReference: {fileID: 733597765}
@@ -4437,6 +4441,22 @@ PrefabInstance:
       propertyPath: throttleSlider
       value: 
       objectReference: {fileID: 1255997452}
+    - target: {fileID: 1889247688539396576, guid: 50349d707663b4667acda6225249752d, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1889247688539396576, guid: 50349d707663b4667acda6225249752d, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -0.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 1889247688539396576, guid: 50349d707663b4667acda6225249752d, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -0.4
+      objectReference: {fileID: 0}
+    - target: {fileID: 3984200202744095314, guid: 50349d707663b4667acda6225249752d, type: 3}
+      propertyPath: maxBrakeTorque
+      value: 15000
+      objectReference: {fileID: 0}
     - target: {fileID: 3984200202744095314, guid: 50349d707663b4667acda6225249752d, type: 3}
       propertyPath: finalDriveRatio
       value: 5.4
@@ -4444,6 +4464,18 @@ PrefabInstance:
     - target: {fileID: 3984200202744095314, guid: 50349d707663b4667acda6225249752d, type: 3}
       propertyPath: highSpeedSteerAngle
       value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 3984200202744095314, guid: 50349d707663b4667acda6225249752d, type: 3}
+      propertyPath: 'gearRatios.Array.data[0]'
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 3984200202744095314, guid: 50349d707663b4667acda6225249752d, type: 3}
+      propertyPath: 'gearRatios.Array.data[1]'
+      value: 2.7
+      objectReference: {fileID: 0}
+    - target: {fileID: 3984200202744095314, guid: 50349d707663b4667acda6225249752d, type: 3}
+      propertyPath: 'gearRatios.Array.data[2]'
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 4990476626068025115, guid: 50349d707663b4667acda6225249752d, type: 3}
       propertyPath: lapListText
@@ -4481,9 +4513,25 @@ PrefabInstance:
       propertyPath: m_WheelDampingRate
       value: 0.2
       objectReference: {fileID: 0}
+    - target: {fileID: 5307698591758852485, guid: 50349d707663b4667acda6225249752d, type: 3}
+      propertyPath: m_SuspensionSpring.damper
+      value: 4500
+      objectReference: {fileID: 0}
+    - target: {fileID: 5307698591758852485, guid: 50349d707663b4667acda6225249752d, type: 3}
+      propertyPath: m_SuspensionSpring.spring
+      value: 45000
+      objectReference: {fileID: 0}
     - target: {fileID: 5446508720785048012, guid: 50349d707663b4667acda6225249752d, type: 3}
       propertyPath: m_WheelDampingRate
       value: 0.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 5446508720785048012, guid: 50349d707663b4667acda6225249752d, type: 3}
+      propertyPath: m_SuspensionSpring.damper
+      value: 4500
+      objectReference: {fileID: 0}
+    - target: {fileID: 5446508720785048012, guid: 50349d707663b4667acda6225249752d, type: 3}
+      propertyPath: m_SuspensionSpring.spring
+      value: 45000
       objectReference: {fileID: 0}
     - target: {fileID: 6112806494080095537, guid: 50349d707663b4667acda6225249752d, type: 3}
       propertyPath: m_IsActive
@@ -4492,6 +4540,14 @@ PrefabInstance:
     - target: {fileID: 6834277045016851805, guid: 50349d707663b4667acda6225249752d, type: 3}
       propertyPath: m_WheelDampingRate
       value: 0.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 6834277045016851805, guid: 50349d707663b4667acda6225249752d, type: 3}
+      propertyPath: m_SuspensionSpring.damper
+      value: 4500
+      objectReference: {fileID: 0}
+    - target: {fileID: 6834277045016851805, guid: 50349d707663b4667acda6225249752d, type: 3}
+      propertyPath: m_SuspensionSpring.spring
+      value: 45000
       objectReference: {fileID: 0}
     - target: {fileID: 7205777584609781876, guid: 50349d707663b4667acda6225249752d, type: 3}
       propertyPath: drsLabel
@@ -4505,6 +4561,18 @@ PrefabInstance:
       propertyPath: m_WheelDampingRate
       value: 0.2
       objectReference: {fileID: 0}
+    - target: {fileID: 7355226479946426595, guid: 50349d707663b4667acda6225249752d, type: 3}
+      propertyPath: m_SuspensionSpring.damper
+      value: 4500
+      objectReference: {fileID: 0}
+    - target: {fileID: 7355226479946426595, guid: 50349d707663b4667acda6225249752d, type: 3}
+      propertyPath: m_SuspensionSpring.spring
+      value: 45000
+      objectReference: {fileID: 0}
+    - target: {fileID: 7994042522747610595, guid: 50349d707663b4667acda6225249752d, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 8540994582504078940, guid: 50349d707663b4667acda6225249752d, type: 3}
       propertyPath: m_LinearDamping
       value: 0.02
@@ -4515,7 +4583,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8540994582504078940, guid: 50349d707663b4667acda6225249752d, type: 3}
       propertyPath: m_CenterOfMass.y
-      value: -0.35
+      value: -0.3
+      objectReference: {fileID: 0}
+    - target: {fileID: 8540994582504078940, guid: 50349d707663b4667acda6225249752d, type: 3}
+      propertyPath: m_CenterOfMass.z
+      value: -0.4
       objectReference: {fileID: 0}
     - target: {fileID: 8733960600569241440, guid: 50349d707663b4667acda6225249752d, type: 3}
       propertyPath: m_LocalPosition.x
@@ -5120,7 +5192,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DrivingManager
   car: {fileID: 9012783402158260859}
-  grassPlaneName: GrassPlane
+  grassPlaneCollider: {fileID: 1524834484}
   grassGripMultiplier: 0.5
   grassAccelerationMultiplier: 0.6
 --- !u!1660057539 &9223372036854775807
