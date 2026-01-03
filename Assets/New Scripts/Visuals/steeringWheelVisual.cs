@@ -5,7 +5,7 @@ public class SteeringWheelVisual : MonoBehaviour
     [SerializeField] private WheelCollider referenceSteeringWheel;
     [SerializeField] private float maxSteerAngle = 30f;
     private float maxVisualRotation = 290f;
-    private float rotationSmooth = 1f;
+    private float rotationSmooth = 2f;
 
     private float baseX;
 
