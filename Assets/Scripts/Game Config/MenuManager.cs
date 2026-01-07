@@ -3,6 +3,8 @@ using UnityEngine.SceneManagement;
 
 public class MenuManager : MonoBehaviour
 {
+    [SerializeField] private GarageMenu garageMenu;
+
     public void StartFreePractice()
     {
         // Load your driving scene (update the name!)
@@ -17,8 +19,13 @@ public class MenuManager : MonoBehaviour
 
     public void OpenGarage()
     {
-        // Placeholder until implemented
-        Debug.Log("Garage coming soon!");
+        if (garageMenu == null)
+        {
+            Debug.LogWarning("GarageMenu reference is missing on MenuManager.");
+            return;
+        }
+
+        garageMenu.Open();
     }
 
     public void QuitGame()
