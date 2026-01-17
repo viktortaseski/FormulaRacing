@@ -23,8 +23,12 @@ public class SimpleCarController : MonoBehaviour
     [SerializeField] private float maxSteerAngle = 30f;
     [SerializeField] private float brakeForce = 3000f;
     [SerializeField] private bool autoBrakeWhenIdle = true;
+    [SerializeField] private bool smoothSteering = true;
+    [SerializeField] private float steerInputSpeed = 4f;
+    [SerializeField] private float steerReturnSpeed = 6f;
     private float currentTorque;
     private float motorTorqueMultiplier = 1f;
+    private float currentSteerInput;
 
     public Rigidbody Rigidbody => rb;
 
@@ -42,6 +46,7 @@ public class SimpleCarController : MonoBehaviour
     private void FixedUpdate()
     {
         GetInputs(out var steer, out var throttle, out var brake);
+        steer = SmoothSteerInput(steer, !useExternalInput);
         ApplySteering(steer);
         ApplyMotor(throttle);
         ApplyBrakes(brake, throttle);
@@ -75,6 +80,19 @@ public class SimpleCarController : MonoBehaviour
         steer = Mathf.Clamp(driveInput.x, -1f, 1f);
         throttle = Mathf.Clamp(driveInput.y, -1f, 1f);
         brake = autoBrakeWhenIdle && Mathf.Approximately(throttle, 0f) ? 1f : 0f;
+    }
+
+    private float SmoothSteerInput(float target, bool allowSmoothing)
+    {
+        if (!allowSmoothing || !smoothSteering || steerInputSpeed <= 0f)
+        {
+            currentSteerInput = target;
+            return target;
+        }
+
+        float rate = Mathf.Abs(target) > Mathf.Abs(currentSteerInput) ? steerInputSpeed : steerReturnSpeed;
+        currentSteerInput = Mathf.MoveTowards(currentSteerInput, target, rate * Time.fixedDeltaTime);
+        return currentSteerInput;
     }
 
     // ===== Steering (Front Wheels) =====

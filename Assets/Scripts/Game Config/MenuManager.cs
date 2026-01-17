@@ -7,8 +7,8 @@ public class MenuManager : MonoBehaviour
 
     public void StartFreePractice()
     {
-        // Load your driving scene (update the name!)
-        SceneManager.LoadScene("RaceTrackScene");
+        // Load your driving scene (update the name! since now multiplayer is called)
+        SceneManager.LoadScene("Multiplayer");
     }
 
     public void OpenMultiplayer()
