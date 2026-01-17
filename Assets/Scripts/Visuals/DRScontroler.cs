@@ -21,6 +21,10 @@ public class DRScontroler : MonoBehaviour
     [Tooltip("Optional: Text label on the DRS button (TMP).")]
     public TMP_Text drsLabel;
 
+    [Header("DRS Input")]
+    [SerializeField] private bool enableKeyboardInput = true;
+    [SerializeField] private KeyCode drsKey = KeyCode.LeftShift;
+
     [Header("DRS Visual")]
     [Tooltip("Local X rotation when DRS is closed.")]
     public float closedAngleX = 0f;
@@ -64,6 +68,11 @@ public class DRScontroler : MonoBehaviour
     {
         // Make sure button visuals start correctly
         UpdateButtonVisual();
+    }
+
+    private void Update()
+    {
+        HandleKeyboardInput();
     }
 
     // This is the function you hook up in the Button OnClick
@@ -148,6 +157,15 @@ public class DRScontroler : MonoBehaviour
 
         // Ready again
         UpdateButtonVisual();
+    }
+
+    private void HandleKeyboardInput()
+    {
+        if (!enableKeyboardInput)
+            return;
+
+        if (Input.GetKeyDown(drsKey))
+            enableDRS();
     }
 
     private void UpdateButtonVisual()
