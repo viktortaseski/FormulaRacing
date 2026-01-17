@@ -3,80 +3,117 @@ using UnityEngine;
 public class CarControls : MonoBehaviour
 {
     [Header("Target Car Physics")]
-    public SimpleCarController car;
+    [SerializeField] private SimpleCarController car;
 
     [Header("Input Settings")]
-    public string steerAxis = "Horizontal";
-    public string moveAxis = "Vertical";
+    [SerializeField] private string steerAxis = "Horizontal";
+    [SerializeField] private string moveAxis = "Vertical";
 
-    public KeyCode extraBrakeKey = KeyCode.Space;
-    [Range(0f, 1f)] public float extraBrakeAmount = 0.7f;
+    [SerializeField] private KeyCode extraBrakeKey = KeyCode.Space;
+    [SerializeField][Range(0f, 1f)] private float extraBrakeAmount = 0.7f;
 
     private Rigidbody carRb;
 
     private void Awake()
     {
-        if (car == null)
-            car = GetComponent<SimpleCarController>();
-
-        if (car != null)
-            carRb = car.Rigidbody != null ? car.Rigidbody : car.GetComponent<Rigidbody>();
+        // Initialization
+        CacheCar();
+        CacheRigidbody();
     }
 
     private void Update()
     {
-        if (car == null)
+        if (!EnsureCar())
+        {
             return;
+        }
 
-        float steer = Input.GetAxis(steerAxis);
-        float move = Input.GetAxis(moveAxis); // W/S or stick Y
+        ReadInput(out var steer, out var move);
+        ComputeThrottleBrake(move, out var throttle, out var brake);
+        ApplyExtraBrake(ref brake);
+        car.SetInputs(steer, throttle, brake);
+    }
 
-        float throttle = 0f;
-        float brake = 0f;
+    private void ReadInput(out float steer, out float move)
+    {
+        steer = Input.GetAxis(steerAxis);
+        move = Input.GetAxis(moveAxis);
+    }
 
-        // forward speed in local Z direction (positive = going forward)
-        float localZ = 0f;
-        if (carRb != null)
-            localZ = Vector3.Dot(carRb.linearVelocity, car.transform.forward);
+    private void ComputeThrottleBrake(float move, out float throttle, out float brake)
+    {
+        throttle = 0f;
+        brake = 0f;
+
+        float localZ = GetLocalForwardSpeed();
 
         if (move > 0f)
         {
-            // player wants to go forward
             if (localZ < -1f)
             {
-                // we're actually rolling backwards → W should brake
                 throttle = 0f;
                 brake = move;
             }
             else
             {
-                // stopped or already moving forward → normal throttle
                 throttle = move;
                 brake = 0f;
             }
         }
         else if (move < 0f)
         {
-            // player wants to go backwards
             if (localZ > 1f)
             {
-                // still moving forward fast → S should brake
                 throttle = 0f;
                 brake = -move;
             }
             else
             {
-                // stopped or already going backwards → reverse throttle
-                throttle = move;   // negative value
+                throttle = move;
                 brake = 0f;
             }
         }
+    }
 
-        if (Input.GetKey(extraBrakeKey))
-        {
-            brake = Mathf.Clamp01(brake + extraBrakeAmount);
-        }
+    private void ApplyExtraBrake(ref float brake)
+    {
+        if (!Input.GetKey(extraBrakeKey))
+            return;
 
-        car.SetInputs(steer, throttle, brake);
+        brake = Mathf.Clamp01(brake + extraBrakeAmount);
+    }
+
+    private bool EnsureCar()
+    {
+        if (car == null)
+            CacheCar();
+
+        if (car == null)
+            return false;
+
+        CacheRigidbody();
+        return true;
+    }
+
+    private void CacheCar()
+    {
+        if (car == null)
+            car = GetComponent<SimpleCarController>();
+    }
+
+    private void CacheRigidbody()
+    {
+        if (carRb != null || car == null)
+            return;
+
+        carRb = car.Rigidbody != null ? car.Rigidbody : car.GetComponent<Rigidbody>();
+    }
+
+    private float GetLocalForwardSpeed()
+    {
+        if (carRb == null || car == null)
+            return 0f;
+
+        return Vector3.Dot(carRb.linearVelocity, car.transform.forward);
     }
 }

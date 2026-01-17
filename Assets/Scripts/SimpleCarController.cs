@@ -26,7 +26,8 @@ public class SimpleCarController : MonoBehaviour
     [SerializeField] private bool smoothSteering = true;
     [SerializeField] private float steerInputSpeed = 4f;
     [SerializeField] private float steerReturnSpeed = 6f;
-    [SerializeField] private AnimationCurve steerSensitivityBySpeed = new AnimationCurve(
+    [SerializeField]
+    private AnimationCurve steerSensitivityBySpeed = new AnimationCurve(
         new Keyframe(0f, 1f),
         new Keyframe(60f, 0.85f),
         new Keyframe(120f, 0.65f),
@@ -53,7 +54,11 @@ public class SimpleCarController : MonoBehaviour
 
     private void FixedUpdate()
     {
-        TickVehicle();
+        GetInputs(out var steer, out var throttle, out var brake);
+        steer = SmoothSteerInput(steer, !useExternalInput);
+        ApplySteering(steer);
+        ApplyMotor(throttle);
+        ApplyBrakes(brake, throttle);
     }
 
     // ===== Input System callback =====
@@ -97,15 +102,6 @@ public class SimpleCarController : MonoBehaviour
         float rate = Mathf.Abs(target) > Mathf.Abs(currentSteerInput) ? steerInputSpeed : steerReturnSpeed;
         currentSteerInput = Mathf.MoveTowards(currentSteerInput, target, rate * Time.fixedDeltaTime);
         return currentSteerInput;
-    }
-
-    private void TickVehicle()
-    {
-        GetInputs(out var steer, out var throttle, out var brake);
-        steer = SmoothSteerInput(steer, !useExternalInput);
-        ApplySteering(steer);
-        ApplyMotor(throttle);
-        ApplyBrakes(brake, throttle);
     }
 
     // ===== Steering (Front Wheels) =====
