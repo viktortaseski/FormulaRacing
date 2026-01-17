@@ -26,6 +26,14 @@ public class SimpleCarController : MonoBehaviour
     [SerializeField] private bool smoothSteering = true;
     [SerializeField] private float steerInputSpeed = 4f;
     [SerializeField] private float steerReturnSpeed = 6f;
+    [SerializeField] private AnimationCurve steerSensitivityBySpeed = new AnimationCurve(
+        new Keyframe(0f, 1f),
+        new Keyframe(60f, 0.85f),
+        new Keyframe(120f, 0.65f),
+        new Keyframe(200f, 0.45f),
+        new Keyframe(280f, 0.35f)
+    );
+    [SerializeField] private float minSteerMultiplier = 0.25f;
     private float currentTorque;
     private float motorTorqueMultiplier = 1f;
     private float currentSteerInput;
@@ -45,11 +53,7 @@ public class SimpleCarController : MonoBehaviour
 
     private void FixedUpdate()
     {
-        GetInputs(out var steer, out var throttle, out var brake);
-        steer = SmoothSteerInput(steer, !useExternalInput);
-        ApplySteering(steer);
-        ApplyMotor(throttle);
-        ApplyBrakes(brake, throttle);
+        TickVehicle();
     }
 
     // ===== Input System callback =====
@@ -95,10 +99,19 @@ public class SimpleCarController : MonoBehaviour
         return currentSteerInput;
     }
 
+    private void TickVehicle()
+    {
+        GetInputs(out var steer, out var throttle, out var brake);
+        steer = SmoothSteerInput(steer, !useExternalInput);
+        ApplySteering(steer);
+        ApplyMotor(throttle);
+        ApplyBrakes(brake, throttle);
+    }
+
     // ===== Steering (Front Wheels) =====
     private void ApplySteering(float steerInputValue)
     {
-        float steer = steerInputValue * maxSteerAngle;
+        float steer = steerInputValue * maxSteerAngle * GetSteerMultiplier();
 
         frontLeftWheel.steerAngle = steer;
         frontRightWheel.steerAngle = steer;
@@ -125,5 +138,19 @@ public class SimpleCarController : MonoBehaviour
 
         rearLeftWheel.brakeTorque = brake * brakeForce;
         rearRightWheel.brakeTorque = brake * brakeForce;
+    }
+
+    private float GetSteerMultiplier()
+    {
+        if (rb == null || steerSensitivityBySpeed == null)
+            return 1f;
+
+        float value = steerSensitivityBySpeed.Evaluate(GetSpeedKph());
+        return Mathf.Clamp(value, minSteerMultiplier, 1f);
+    }
+
+    private float GetSpeedKph()
+    {
+        return rb != null ? rb.linearVelocity.magnitude * 3.6f : 0f;
     }
 }
