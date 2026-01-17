@@ -5,6 +5,7 @@ public class RestartManager : MonoBehaviour
 {
     [SerializeField] private bool enableKeyboardInput = true;
     [SerializeField] private KeyCode restartKey = KeyCode.R;
+    [SerializeField] private string mainMenuSceneName = "MainMenu";
 
     private void Update()
     {
@@ -14,6 +15,12 @@ public class RestartManager : MonoBehaviour
     public void RestartScene()
     {
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+    }
+
+    public void LoadMainMenu()
+    {
+        if (!string.IsNullOrEmpty(mainMenuSceneName))
+            SceneManager.LoadScene(mainMenuSceneName);
     }
 
     private void HandleKeyboardInput()
