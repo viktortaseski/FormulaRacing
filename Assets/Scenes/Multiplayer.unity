@@ -232,6 +232,7 @@ GameObject:
   - component: {fileID: 471032234}
   - component: {fileID: 471032233}
   - component: {fileID: 471032232}
+  - component: {fileID: 471032235}
   m_Layer: 5
   m_Name: BackButton
   m_TagString: Untagged
@@ -303,7 +304,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1713809384}
+      - m_Target: {fileID: 471032235}
         m_TargetAssemblyTypeName: RestartManager, Assembly-CSharp
         m_MethodName: LoadMainMenu
         m_Mode: 1
@@ -353,6 +354,21 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 471032229}
   m_CullTransparentMesh: 1
+--- !u!114 &471032235
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 471032229}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f07dcffc88d864d1f8fbddbcef600e61, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RestartManager
+  enableKeyboardInput: 1
+  restartKey: 114
+  mainMenuSceneName: MainMenu
 --- !u!146 &552772216 stripped
 WheelCollider:
   m_CorrespondingSourceObject: {fileID: 6169295922617746172, guid: 7701ab6e3b5c146c48926d7b7268b62a, type: 3}
