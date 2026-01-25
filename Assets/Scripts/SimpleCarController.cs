@@ -27,6 +27,14 @@ public class SimpleCarController : MonoBehaviour
     [SerializeField] private bool limitTopSpeed = true;
     [SerializeField] private float maxSpeedKph = 220f;
     [SerializeField] private float speedLimiterRangeKph = 15f;
+    [SerializeField] private float maxSpeedKphMultiplier = 1f;
+    [Header("High Speed Steering")]
+    [Tooltip("Start reducing max steer angle at this speed (kph).")]
+    [SerializeField] private float highSpeedSteerStartKph = 120f;
+    [Tooltip("Max steer angle at or above highSpeedSteerEndKph (kph).")]
+    [SerializeField] private float highSpeedMaxSteerAngle = 12f;
+    [Tooltip("Fully apply high-speed steer limit at this speed (kph).")]
+    [SerializeField] private float highSpeedSteerEndKph = 200f;
     [SerializeField] private bool smoothSteering = true;
     [SerializeField] private float steerInputSpeed = 4f;
     [SerializeField] private float steerReturnSpeed = 6f;
@@ -49,6 +57,12 @@ public class SimpleCarController : MonoBehaviour
     {
         get => motorTorqueMultiplier;
         set => motorTorqueMultiplier = Mathf.Max(0f, value);
+    }
+
+    public float MaxSpeedKphMultiplier
+    {
+        get => maxSpeedKphMultiplier;
+        set => maxSpeedKphMultiplier = Mathf.Max(0.1f, value);
     }
 
     private void Awake()
@@ -111,7 +125,16 @@ public class SimpleCarController : MonoBehaviour
     // ===== Steering (Front Wheels) =====
     private void ApplySteering(float steerInputValue)
     {
-        float steer = steerInputValue * maxSteerAngle * GetSteerMultiplier();
+        float steerMultiplier = GetSteerMultiplier();
+        float speedKph = GetSpeedKph();
+        float maxAngle = maxSteerAngle;
+        if (speedKph > highSpeedSteerStartKph && highSpeedSteerEndKph > highSpeedSteerStartKph)
+        {
+            float t = Mathf.InverseLerp(highSpeedSteerStartKph, highSpeedSteerEndKph, speedKph);
+            maxAngle = Mathf.Lerp(maxSteerAngle, highSpeedMaxSteerAngle, t);
+        }
+
+        float steer = steerInputValue * maxAngle * steerMultiplier;
 
         frontLeftWheel.steerAngle = steer;
         frontRightWheel.steerAngle = steer;
@@ -139,6 +162,8 @@ public class SimpleCarController : MonoBehaviour
 
         rearLeftWheel.brakeTorque = brake * brakeForce;
         rearRightWheel.brakeTorque = brake * brakeForce;
+        frontLeftWheel.brakeTorque = brake * brakeForce;
+        frontRightWheel.brakeTorque = brake * brakeForce;
     }
 
     private float GetSteerMultiplier()
@@ -169,11 +194,12 @@ public class SimpleCarController : MonoBehaviour
             return 1f;
 
         float speedKph = Mathf.Abs(forwardSpeed) * 3.6f;
+        float effectiveMaxSpeed = maxSpeedKph * maxSpeedKphMultiplier;
         if (speedLimiterRangeKph <= 0f)
-            return speedKph >= maxSpeedKph ? 0f : 1f;
+            return speedKph >= effectiveMaxSpeed ? 0f : 1f;
 
-        float startKph = Mathf.Max(0f, maxSpeedKph - speedLimiterRangeKph);
-        float t = Mathf.InverseLerp(startKph, maxSpeedKph, speedKph);
+        float startKph = Mathf.Max(0f, effectiveMaxSpeed - speedLimiterRangeKph);
+        float t = Mathf.InverseLerp(startKph, effectiveMaxSpeed, speedKph);
         return 1f - Mathf.Clamp01(t);
     }
 }

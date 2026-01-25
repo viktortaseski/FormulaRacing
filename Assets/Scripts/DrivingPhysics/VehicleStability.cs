@@ -14,6 +14,7 @@ public class VehicleStability : MonoBehaviour
     [SerializeField] private float downforceCoefficient = 0.02f;
     [SerializeField] private float maxDownforce = 2500f;
     [SerializeField] private float minDownforceSpeedKph = 30f;
+    [SerializeField] private float downforceMultiplier = 1f;
 
     [Header("Airborne Stabilizer")]
     [SerializeField] private bool enableAirborneStabilizer = true;
@@ -21,6 +22,21 @@ public class VehicleStability : MonoBehaviour
     [SerializeField] private float maxAirborneDownforce = 30f;
     [SerializeField] private float airborneMinSpeedKph = 70f;
     [SerializeField] private float airborneMinUpwardVelocity = 1.25f;
+
+    [Header("Stability Assist")]
+    [SerializeField] private bool enableSideSlipDamping = true;
+    [SerializeField] private float sideSlipDamping = 2.2f;
+    [SerializeField] private float maxSideSlipAcceleration = 8f;
+    [SerializeField] private float sideSlipMinSpeedKph = 60f;
+    [SerializeField] private bool enableYawStability = true;
+    [SerializeField] private float yawStability = 2f;
+    [SerializeField] private float yawMinSpeedKph = 60f;
+
+    public float DownforceMultiplier
+    {
+        get => downforceMultiplier;
+        set => downforceMultiplier = Mathf.Clamp(value, 0f, 2f);
+    }
 
     private void Awake()
     {
@@ -37,6 +53,8 @@ public class VehicleStability : MonoBehaviour
     {
         ApplyDownforce();
         ApplyAirborneStabilizer();
+        ApplySideSlipDamping();
+        ApplyYawStability();
     }
 
     private void ApplyDownforce()
@@ -48,8 +66,9 @@ public class VehicleStability : MonoBehaviour
         if (speedKph < minDownforceSpeedKph)
             return;
 
-        float downforce = downforceCoefficient * speedKph * speedKph;
-        downforce = Mathf.Min(downforce, maxDownforce);
+        float multiplier = Mathf.Max(0f, downforceMultiplier);
+        float downforce = downforceCoefficient * speedKph * speedKph * multiplier;
+        downforce = Mathf.Min(downforce, maxDownforce * multiplier);
         rb.AddForce(-transform.up * downforce, ForceMode.Force);
     }
 
@@ -69,6 +88,37 @@ public class VehicleStability : MonoBehaviour
 
         float force = Mathf.Min(airborneDownforce, maxAirborneDownforce);
         rb.AddForce(-transform.up * force, ForceMode.Acceleration);
+    }
+
+    private void ApplySideSlipDamping()
+    {
+        if (!enableSideSlipDamping || rb == null)
+            return;
+
+        if (!IsAnyWheelGrounded())
+            return;
+
+        if (GetSpeedKph() < sideSlipMinSpeedKph)
+            return;
+
+        float sideSpeed = Vector3.Dot(rb.linearVelocity, transform.right);
+        float accel = Mathf.Clamp(-sideSpeed * sideSlipDamping, -maxSideSlipAcceleration, maxSideSlipAcceleration);
+        rb.AddForce(transform.right * accel, ForceMode.Acceleration);
+    }
+
+    private void ApplyYawStability()
+    {
+        if (!enableYawStability || rb == null)
+            return;
+
+        if (!IsAnyWheelGrounded())
+            return;
+
+        if (GetSpeedKph() < yawMinSpeedKph)
+            return;
+
+        float yaw = rb.angularVelocity.y;
+        rb.AddTorque(-transform.up * yaw * yawStability, ForceMode.Acceleration);
     }
 
     private bool IsAnyWheelGrounded()
