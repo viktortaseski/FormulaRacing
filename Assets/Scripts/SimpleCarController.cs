@@ -23,6 +23,10 @@ public class SimpleCarController : MonoBehaviour
     [SerializeField] private float maxSteerAngle = 30f;
     [SerializeField] private float brakeForce = 3000f;
     [SerializeField] private bool autoBrakeWhenIdle = true;
+    [Header("Top Speed")]
+    [SerializeField] private bool limitTopSpeed = true;
+    [SerializeField] private float maxSpeedKph = 220f;
+    [SerializeField] private float speedLimiterRangeKph = 15f;
     [SerializeField] private bool smoothSteering = true;
     [SerializeField] private float steerInputSpeed = 4f;
     [SerializeField] private float steerReturnSpeed = 6f;
@@ -116,7 +120,8 @@ public class SimpleCarController : MonoBehaviour
     // ===== Motor (Rear Wheels Only) =====
     private void ApplyMotor(float throttleInputValue)
     {
-        float torque = throttleInputValue * motorTorque * motorTorqueMultiplier;
+        float limiter = GetSpeedLimiterFactor(throttleInputValue);
+        float torque = throttleInputValue * motorTorque * motorTorqueMultiplier * limiter;
         currentTorque = Mathf.Lerp(currentTorque, torque, Time.fixedDeltaTime * 5f);
 
         rearLeftWheel.motorTorque = currentTorque;
@@ -148,5 +153,27 @@ public class SimpleCarController : MonoBehaviour
     private float GetSpeedKph()
     {
         return rb != null ? rb.linearVelocity.magnitude * 3.6f : 0f;
+    }
+
+    private float GetSpeedLimiterFactor(float throttleInputValue)
+    {
+        if (!limitTopSpeed || rb == null || maxSpeedKph <= 0f)
+            return 1f;
+
+        float forwardSpeed = Vector3.Dot(rb.linearVelocity, transform.forward);
+        if (Mathf.Approximately(throttleInputValue, 0f))
+            return 1f;
+
+        // Only limit when accelerating in the same direction as travel.
+        if (Mathf.Sign(throttleInputValue) != Mathf.Sign(forwardSpeed))
+            return 1f;
+
+        float speedKph = Mathf.Abs(forwardSpeed) * 3.6f;
+        if (speedLimiterRangeKph <= 0f)
+            return speedKph >= maxSpeedKph ? 0f : 1f;
+
+        float startKph = Mathf.Max(0f, maxSpeedKph - speedLimiterRangeKph);
+        float t = Mathf.InverseLerp(startKph, maxSpeedKph, speedKph);
+        return 1f - Mathf.Clamp01(t);
     }
 }
