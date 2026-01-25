@@ -731,6 +731,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 3277429107915372092}
     m_Modifications:
+    - target: {fileID: 1153124362989684682, guid: f074dc040abac49c794de757ea7f2ea7, type: 3}
+      propertyPath: m_IsTrigger
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1418224259061722619, guid: f074dc040abac49c794de757ea7f2ea7, type: 3}
+      propertyPath: m_IsTrigger
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 1623731448810990336, guid: f074dc040abac49c794de757ea7f2ea7, type: 3}
       propertyPath: m_Name
       value: SectorTriggers
@@ -738,6 +746,10 @@ PrefabInstance:
     - target: {fileID: 3734232112425054804, guid: f074dc040abac49c794de757ea7f2ea7, type: 3}
       propertyPath: m_LocalPosition.y
       value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 5531427094460297233, guid: f074dc040abac49c794de757ea7f2ea7, type: 3}
+      propertyPath: m_IsTrigger
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8012319867055542187, guid: f074dc040abac49c794de757ea7f2ea7, type: 3}
       propertyPath: m_LocalPosition.x
