@@ -14,11 +14,13 @@ public class RestartManager : MonoBehaviour
 
     public void RestartScene()
     {
+        Time.timeScale = 1f;
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 
     public void LoadMainMenu()
     {
+        Time.timeScale = 1f;
         if (!string.IsNullOrEmpty(mainMenuSceneName))
             SceneManager.LoadScene(mainMenuSceneName);
     }
