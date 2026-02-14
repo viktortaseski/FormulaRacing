@@ -221,7 +221,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 42529806}
         m_TargetAssemblyTypeName: RestartManager, Assembly-CSharp
-        m_MethodName: RestartScene
+        m_MethodName: BackToRacing
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

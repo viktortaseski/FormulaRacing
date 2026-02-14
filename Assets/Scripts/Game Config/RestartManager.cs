@@ -1,8 +1,14 @@
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 
 public class RestartManager : MonoBehaviour
 {
+    private static string lastSceneName;
+    private static bool settingsLoadedAdditively;
+    private static EventSystem[] cachedEventSystems;
+    private static bool[] cachedEventSystemStates;
+
     [SerializeField] private bool enableKeyboardInput = true;
     [SerializeField] private KeyCode restartKey = KeyCode.R;
     [SerializeField] private string mainMenuSceneName = "MainMenu";
@@ -22,6 +28,8 @@ public class RestartManager : MonoBehaviour
     public void LoadMainMenu()
     {
         Time.timeScale = 1f;
+        lastSceneName = string.Empty;
+        settingsLoadedAdditively = false;
         if (!string.IsNullOrEmpty(mainMenuSceneName))
         {
             SceneManager.LoadScene(mainMenuSceneName);
@@ -30,10 +38,72 @@ public class RestartManager : MonoBehaviour
 
     public void LoadSettings()
     {
+        CacheLastScene();
         if (!string.IsNullOrEmpty(settingsSceneName))
         {
-            SceneManager.LoadScene(settingsSceneName);
+            if (IsActiveSceneMainMenu())
+            {
+                settingsLoadedAdditively = false;
+                SceneManager.LoadScene(settingsSceneName);
+                return;
+            }
+
+            var settingsScene = SceneManager.GetSceneByName(settingsSceneName);
+            if (settingsScene.isLoaded)
+            {
+                SceneManager.SetActiveScene(settingsScene);
+                return;
+            }
+
+            settingsLoadedAdditively = true;
+            CacheEventSystems();
+            var load = SceneManager.LoadSceneAsync(settingsSceneName, LoadSceneMode.Additive);
+            if (load != null)
+            {
+                load.completed += _ =>
+                {
+                    var loadedScene = SceneManager.GetSceneByName(settingsSceneName);
+                    if (loadedScene.IsValid())
+                    {
+                        SceneManager.SetActiveScene(loadedScene);
+                        EnableOnlyEventSystemInScene(loadedScene);
+                    }
+                };
+            }
         }
+    }
+
+    public void BackToRacing()
+    {
+        Time.timeScale = 1f;
+        if (settingsLoadedAdditively)
+        {
+            var settingsScene = SceneManager.GetSceneByName(settingsSceneName);
+            if (settingsScene.isLoaded)
+            {
+                SceneManager.UnloadSceneAsync(settingsScene);
+            }
+
+            RestoreEventSystems();
+            settingsLoadedAdditively = false;
+
+            if (!string.IsNullOrEmpty(lastSceneName))
+            {
+                var lastScene = SceneManager.GetSceneByName(lastSceneName);
+                if (lastScene.IsValid())
+                    SceneManager.SetActiveScene(lastScene);
+            }
+
+            return;
+        }
+
+        if (!string.IsNullOrEmpty(lastSceneName))
+        {
+            SceneManager.LoadScene(lastSceneName);
+            return;
+        }
+
+        LoadMainMenu();
     }
 
     private void HandleKeyboardInput()
@@ -43,5 +113,55 @@ public class RestartManager : MonoBehaviour
 
         if (Input.GetKeyDown(restartKey))
             RestartScene();
+    }
+
+    private void CacheLastScene()
+    {
+        var active = SceneManager.GetActiveScene();
+        if (!active.IsValid())
+            return;
+
+        if (!string.IsNullOrEmpty(settingsSceneName) && active.name == settingsSceneName)
+            return;
+
+        lastSceneName = active.name;
+    }
+
+    private bool IsActiveSceneMainMenu()
+    {
+        var active = SceneManager.GetActiveScene();
+        return active.IsValid() && active.name == mainMenuSceneName;
+    }
+
+    private void CacheEventSystems()
+    {
+        cachedEventSystems = Resources.FindObjectsOfTypeAll<EventSystem>();
+        cachedEventSystemStates = new bool[cachedEventSystems.Length];
+        for (int i = 0; i < cachedEventSystems.Length; i++)
+            cachedEventSystemStates[i] = cachedEventSystems[i] != null && cachedEventSystems[i].enabled;
+    }
+
+    private void RestoreEventSystems()
+    {
+        if (cachedEventSystems == null || cachedEventSystemStates == null)
+            return;
+
+        for (int i = 0; i < cachedEventSystems.Length; i++)
+        {
+            if (cachedEventSystems[i] != null)
+                cachedEventSystems[i].enabled = cachedEventSystemStates[i];
+        }
+    }
+
+    private void EnableOnlyEventSystemInScene(Scene scene)
+    {
+        var all = Resources.FindObjectsOfTypeAll<EventSystem>();
+        for (int i = 0; i < all.Length; i++)
+        {
+            if (all[i] == null)
+                continue;
+
+            all[i].enabled = all[i].gameObject.scene == scene;
+        }
     }
 }
