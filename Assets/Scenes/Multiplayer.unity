@@ -507,6 +507,17 @@ WheelCollider:
   m_CorrespondingSourceObject: {fileID: 6169295922617746172, guid: 7701ab6e3b5c146c48926d7b7268b62a, type: 3}
   m_PrefabInstance: {fileID: 2082308917}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &566520046 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3846742099790714941, guid: 7701ab6e3b5c146c48926d7b7268b62a, type: 3}
+  m_PrefabInstance: {fileID: 2082308917}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 93f392da7089d4ad9b4173f90612243a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DrivingControler
 --- !u!1 &597428209
 GameObject:
   m_ObjectHideFlags: 0
@@ -1895,8 +1906,8 @@ MonoBehaviour:
   rearLeftWheel: {fileID: 277902268}
   rearRightWheel: {fileID: 552772216}
   enableDownforce: 1
-  downforceCoefficient: 0.02
-  maxDownforce: 2500
+  downforceCoefficient: 0.025
+  maxDownforce: 3000
   minDownforceSpeedKph: 30
   downforceMultiplier: 1
   enableAirborneStabilizer: 1
@@ -2861,11 +2872,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4772447753206772870, guid: 7701ab6e3b5c146c48926d7b7268b62a, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 110.09
+      value: 75
       objectReference: {fileID: 0}
     - target: {fileID: 4772447753206772870, guid: 7701ab6e3b5c146c48926d7b7268b62a, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 2.9
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 4772447753206772870, guid: 7701ab6e3b5c146c48926d7b7268b62a, type: 3}
       propertyPath: m_LocalPosition.z
@@ -8996,9 +9007,9 @@ MonoBehaviour:
     callback:
       m_PersistentCalls:
         m_Calls:
-        - m_Target: {fileID: 0}
-          m_TargetAssemblyTypeName: MobileCarControls, Assembly-CSharp
-          m_MethodName: 
+        - m_Target: {fileID: 566520046}
+          m_TargetAssemblyTypeName: SimpleCarController, Assembly-CSharp
+          m_MethodName: BrakeButtonDown
           m_Mode: 1
           m_Arguments:
             m_ObjectArgument: {fileID: 0}
@@ -9012,8 +9023,8 @@ MonoBehaviour:
     callback:
       m_PersistentCalls:
         m_Calls:
-        - m_Target: {fileID: 0}
-          m_TargetAssemblyTypeName: MobileCarControls, Assembly-CSharp
+        - m_Target: {fileID: 566520046}
+          m_TargetAssemblyTypeName: SimpleCarController, Assembly-CSharp
           m_MethodName: BrakeButtonUp
           m_Mode: 1
           m_Arguments:

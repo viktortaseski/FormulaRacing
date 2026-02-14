@@ -24,6 +24,9 @@ public class SimpleCarController : MonoBehaviour
     [SerializeField] private float brakeForce = 3000f;
     [SerializeField] private bool autoBrakeWhenIdle = true;
     [SerializeField][Range(0f, 1f)] private float idleBrakeStrength = 0.15f;
+    [Header("Brake Input")]
+    [SerializeField][Range(0f, 1f)] private float brakeButtonStrength = 1f;
+    [SerializeField] private bool cutThrottleWhenBraking = true;
     [Header("Top Speed")]
     [SerializeField] private bool limitTopSpeed = true;
     [SerializeField] private float maxSpeedKph = 240f;
@@ -51,6 +54,8 @@ public class SimpleCarController : MonoBehaviour
     private float currentTorque;
     private float motorTorqueMultiplier = 1f;
     private float currentSteerInput;
+    private bool brakeActionHeld;
+    private bool brakeButtonHeld;
 
     public Rigidbody Rigidbody => rb;
 
@@ -87,6 +92,34 @@ public class SimpleCarController : MonoBehaviour
         useExternalInput = false;
     }
 
+    private void OnBrake(InputValue value)
+    {
+        brakeActionHeld = value.isPressed;
+        useExternalInput = false;
+    }
+
+    private void OnBrakePerformed(InputValue value)
+    {
+        brakeActionHeld = value.isPressed;
+        useExternalInput = false;
+    }
+
+    private void OnBrakeCanceled(InputValue value)
+    {
+        brakeActionHeld = false;
+        useExternalInput = false;
+    }
+
+    public void BrakeButtonDown()
+    {
+        brakeButtonHeld = true;
+    }
+
+    public void BrakeButtonUp()
+    {
+        brakeButtonHeld = false;
+    }
+
     public void SetInputs(float steer, float throttle, float brake)
     {
         steerInput = Mathf.Clamp(steer, -1f, 1f);
@@ -108,6 +141,13 @@ public class SimpleCarController : MonoBehaviour
         steer = Mathf.Clamp(driveInput.x, -1f, 1f);
         throttle = Mathf.Clamp(driveInput.y, -1f, 1f);
         brake = autoBrakeWhenIdle && Mathf.Approximately(throttle, 0f) ? idleBrakeStrength : 0f;
+
+        float uiBrake = brakeButtonHeld ? brakeButtonStrength : 0f;
+        float actionBrake = brakeActionHeld ? brakeButtonStrength : 0f;
+        brake = Mathf.Max(brake, actionBrake, uiBrake);
+
+        if (cutThrottleWhenBraking && brake > 0f)
+            throttle = 0f;
     }
 
     private float SmoothSteerInput(float target, bool allowSmoothing)

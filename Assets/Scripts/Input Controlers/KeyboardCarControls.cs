@@ -9,6 +9,11 @@ public class CarControls : MonoBehaviour
     [SerializeField] private string steerAxis = "Horizontal";
     [SerializeField] private string moveAxis = "Vertical";
 
+    [Header("Brake")]
+    [SerializeField] private KeyCode brakeKey = KeyCode.Space;
+    [SerializeField][Range(0f, 1f)] private float brakeAmount = 1f;
+
+    [Header("Extra Brake (Additive)")]
     [SerializeField] private KeyCode extraBrakeKey = KeyCode.Space;
     [SerializeField][Range(0f, 1f)] private float extraBrakeAmount = 0.7f;
 
@@ -30,6 +35,7 @@ public class CarControls : MonoBehaviour
 
         ReadInput(out var steer, out var move);
         ComputeThrottleBrake(move, out var throttle, out var brake);
+        ApplyBrakeKey(ref throttle, ref brake);
         ApplyExtraBrake(ref brake);
         car.SetInputs(steer, throttle, brake);
     }
@@ -81,6 +87,15 @@ public class CarControls : MonoBehaviour
             return;
 
         brake = Mathf.Clamp01(brake + extraBrakeAmount);
+    }
+
+    private void ApplyBrakeKey(ref float throttle, ref float brake)
+    {
+        if (!Input.GetKey(brakeKey))
+            return;
+
+        throttle = 0f;
+        brake = Mathf.Max(brake, brakeAmount);
     }
 
     private bool EnsureCar()
