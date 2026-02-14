@@ -29,9 +29,6 @@ public class SettingsManager : MonoBehaviour
     [SerializeField] private AssistLevel defaultBrakeAssist = AssistLevel.Medium;
     [SerializeField] private AssistLevel defaultStabilityAssist = AssistLevel.Medium;
 
-    [Header("Audio")]
-    [SerializeField] private AudioSource[] musicSources;
-
     private bool listenersHooked;
 
     private void Awake()
@@ -143,8 +140,6 @@ public class SettingsManager : MonoBehaviour
 
     private void OnMusicToggled(bool isOn)
     {
-        PlayerPrefs.SetInt(MusicEnabledKey, isOn ? 1 : 0);
-        PlayerPrefs.Save();
         ApplyMusicState(isOn);
     }
 
@@ -169,18 +164,6 @@ public class SettingsManager : MonoBehaviour
 
     private void ApplyMusicState(bool enabled)
     {
-        if (musicSources == null || musicSources.Length == 0)
-            return;
-
-        for (int i = 0; i < musicSources.Length; i++)
-        {
-            if (musicSources[i] == null)
-                continue;
-
-            musicSources[i].mute = !enabled;
-
-            if (enabled && !musicSources[i].isPlaying)
-                musicSources[i].Play();
-        }
+        AudioManager.SetMusicEnabled(enabled);
     }
 }
