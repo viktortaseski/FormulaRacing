@@ -1,21 +1,27 @@
 using UnityEngine;
 
+[DisallowMultipleComponent]
 public class AudioManager : MonoBehaviour
 {
+    private static AudioManager instance;
 
-    public AudioSource themeSong;
+    [SerializeField] private AudioSource themeSong;
 
-    void Start()
+    private void Awake()
     {
-        if (themeSong != null && !themeSong.isPlaying)
+        if (instance != null && instance != this)
         {
-            themeSong.Play();
+            Destroy(gameObject);
+            return;
         }
+
+        instance = this;
+        DontDestroyOnLoad(gameObject);
     }
 
-    // Update is called once per frame
-    void Update()
+    private void Start()
     {
-
+        if (themeSong != null && !themeSong.isPlaying)
+            themeSong.Play();
     }
 }

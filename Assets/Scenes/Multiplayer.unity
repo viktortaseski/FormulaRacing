@@ -2732,6 +2732,14 @@ PrefabInstance:
       propertyPath: m_LocalPosition.x
       value: 0.8
       objectReference: {fileID: 0}
+    - target: {fileID: 2548662014441168707, guid: 7701ab6e3b5c146c48926d7b7268b62a, type: 3}
+      propertyPath: maxPitch
+      value: 1.8
+      objectReference: {fileID: 0}
+    - target: {fileID: 2548662014441168707, guid: 7701ab6e3b5c146c48926d7b7268b62a, type: 3}
+      propertyPath: accelVolumeBoost
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 3417856240324890665, guid: 7701ab6e3b5c146c48926d7b7268b62a, type: 3}
       propertyPath: m_Volume
       value: 0.515
