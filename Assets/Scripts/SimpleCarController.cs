@@ -23,9 +23,10 @@ public class SimpleCarController : MonoBehaviour
     [SerializeField] private float maxSteerAngle = 30f;
     [SerializeField] private float brakeForce = 3000f;
     [SerializeField] private bool autoBrakeWhenIdle = true;
+    [SerializeField][Range(0f, 1f)] private float idleBrakeStrength = 0.15f;
     [Header("Top Speed")]
     [SerializeField] private bool limitTopSpeed = true;
-    [SerializeField] private float maxSpeedKph = 220f;
+    [SerializeField] private float maxSpeedKph = 240f;
     [SerializeField] private float speedLimiterRangeKph = 15f;
     [SerializeField] private float maxSpeedKphMultiplier = 1f;
     [Header("High Speed Steering")]
@@ -106,7 +107,7 @@ public class SimpleCarController : MonoBehaviour
 
         steer = Mathf.Clamp(driveInput.x, -1f, 1f);
         throttle = Mathf.Clamp(driveInput.y, -1f, 1f);
-        brake = autoBrakeWhenIdle && Mathf.Approximately(throttle, 0f) ? 1f : 0f;
+        brake = autoBrakeWhenIdle && Mathf.Approximately(throttle, 0f) ? idleBrakeStrength : 0f;
     }
 
     private float SmoothSteerInput(float target, bool allowSmoothing)
@@ -157,7 +158,7 @@ public class SimpleCarController : MonoBehaviour
         var brake = Mathf.Clamp01(brakeInputValue);
         if (brake <= 0f && autoBrakeWhenIdle && Mathf.Approximately(throttleInputValue, 0f))
         {
-            brake = 1f;
+            brake = idleBrakeStrength;
         }
 
         rearLeftWheel.brakeTorque = brake * brakeForce;

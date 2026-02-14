@@ -57,7 +57,7 @@ public class DRScontroler : MonoBehaviour
     public float downforceMultiplier = 0.8f;
 
     [Tooltip("Multiplier applied to car max speed while DRS is active.")]
-    public float speedLimitMultiplier = 1.1f;
+    public float speedLimitMultiplier = 1.13f;
 
     // Internal state
     private bool _drsActive = false;
