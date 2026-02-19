@@ -22,17 +22,10 @@ public class MobileCarControls : MonoBehaviour
     [SerializeField] private float tiltMaxG = 0.35f;
     [Tooltip("Ignore small tilt under this value (in g).")]
     [SerializeField] private float tiltDeadzone = 0.05f;
-    [Tooltip("Exponent > 1 softens small tilts; 1 = linear.")]
-    [SerializeField][Range(1f, 3f)] private float tiltExponent = 1.6f;
-    [Tooltip("Global multiplier on tilt output (lower = less sensitive).")]
-    [SerializeField][Range(0.1f, 1f)] private float tiltOutputMultiplier = 0.6f;
-    [Tooltip("Hard cap on steering output from tilt (0..1).")]
-    [SerializeField][Range(0.1f, 1f)] private float maxSteerOutput = 0.85f;
-    [Tooltip("How smoothly steering follows tilt.")]
-    [SerializeField] private float steerSmoothing = 5f;
+    [Tooltip("Invert tilt direction if steering feels reversed.")]
+    [SerializeField] private bool invertTilt = false;
 
     private bool brakeHeld = false;
-    private float currentSteer = 0f;
     private Rigidbody carRb;
 
 
@@ -85,11 +78,7 @@ public class MobileCarControls : MonoBehaviour
 
         // Normalize by maxG so that when |accel| = tiltMaxG, steer = ±1
         float normalized = Mathf.Clamp(raw / tiltMaxG, -1f, 1f);
-        // Apply exponential to calm center feel, then cap so tiny tilts don't give full lock
-        float curved = Mathf.Sign(normalized) * Mathf.Pow(Mathf.Abs(normalized), tiltExponent);
-        float limited = Mathf.Clamp(curved, -maxSteerOutput, maxSteerOutput);
-
-        return limited * tiltOutputMultiplier;
+        return invertTilt ? -normalized : normalized;
     }
 
     // ----------------------------
@@ -165,9 +154,7 @@ public class MobileCarControls : MonoBehaviour
 
     private float UpdateSteer()
     {
-        float targetSteer = ReadTiltSteer();
-        currentSteer = Mathf.Lerp(currentSteer, targetSteer, steerSmoothing * Time.deltaTime);
-        return currentSteer;
+        return ReadTiltSteer();
     }
 
     private bool EnsureCar()

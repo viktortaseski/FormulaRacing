@@ -91,7 +91,7 @@ public class SimpleCarController : MonoBehaviour
     private void FixedUpdate()
     {
         GetInputs(out var steer, out var throttle, out var brake);
-        steer = SmoothSteerInput(steer, !useExternalInput);
+        steer = SmoothSteerInput(steer, true);
         ApplySteering(steer);
         ApplyMotor(throttle);
         ApplyBrakes(brake, throttle);
