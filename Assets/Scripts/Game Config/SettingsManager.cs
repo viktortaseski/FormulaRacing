@@ -8,6 +8,13 @@ public class SettingsManager : MonoBehaviour
     private const string MusicEnabledKey = "settings.musicEnabled";
     private const string BrakeAssistKey = "settings.brakeAssist";
     private const string StabilityAssistKey = "settings.stabilityAssist";
+    public const string InputModeKey = "settings.inputMode";
+
+    public enum InputMode
+    {
+        Keyboard = 0,
+        Mobile = 1
+    }
 
     private enum AssistLevel
     {
@@ -22,12 +29,18 @@ public class SettingsManager : MonoBehaviour
     [SerializeField] private Toggle musicToggle;
     [SerializeField] private TMP_Dropdown brakeAssistDropdownTmp;
     [SerializeField] private TMP_Dropdown stabilityAssistDropdownTmp;
+    [SerializeField] private TMP_Dropdown inputModeDropdownTmp;
 
     [Header("Defaults")]
     [SerializeField][Range(0.1f, 2f)] private float defaultSteeringSensitivity = 1f;
     [SerializeField] private bool defaultMusicEnabled = true;
     [SerializeField] private AssistLevel defaultBrakeAssist = AssistLevel.Medium;
     [SerializeField] private AssistLevel defaultStabilityAssist = AssistLevel.Medium;
+    [SerializeField] private InputMode defaultInputMode = InputMode.Keyboard;
+
+    [Header("Input Mode (Optional Scene References)")]
+    [SerializeField] private SimpleCarController carController;
+    [SerializeField] private MobileCarControls mobileControls;
 
     private bool listenersHooked;
 
@@ -84,6 +97,9 @@ public class SettingsManager : MonoBehaviour
         if (stabilityAssistDropdownTmp != null)
             stabilityAssistDropdownTmp.onValueChanged.AddListener(OnStabilityAssistChanged);
 
+        if (inputModeDropdownTmp != null)
+            inputModeDropdownTmp.onValueChanged.AddListener(OnInputModeChanged);
+
         listenersHooked = true;
     }
 
@@ -104,6 +120,9 @@ public class SettingsManager : MonoBehaviour
         if (stabilityAssistDropdownTmp != null)
             stabilityAssistDropdownTmp.onValueChanged.RemoveListener(OnStabilityAssistChanged);
 
+        if (inputModeDropdownTmp != null)
+            inputModeDropdownTmp.onValueChanged.RemoveListener(OnInputModeChanged);
+
         listenersHooked = false;
     }
 
@@ -113,6 +132,7 @@ public class SettingsManager : MonoBehaviour
         bool musicOn = PlayerPrefs.GetInt(MusicEnabledKey, defaultMusicEnabled ? 1 : 0) == 1;
         int brakeAssist = Mathf.Clamp(PlayerPrefs.GetInt(BrakeAssistKey, (int)defaultBrakeAssist), 0, 3);
         int stabilityAssist = Mathf.Clamp(PlayerPrefs.GetInt(StabilityAssistKey, (int)defaultStabilityAssist), 0, 3);
+        int inputMode = Mathf.Clamp(PlayerPrefs.GetInt(InputModeKey, (int)defaultInputMode), 0, 1);
 
         if (steeringSensitivitySlider != null)
             steeringSensitivitySlider.SetValueWithoutNotify(steering);
@@ -125,6 +145,9 @@ public class SettingsManager : MonoBehaviour
 
         if (stabilityAssistDropdownTmp != null)
             stabilityAssistDropdownTmp.SetValueWithoutNotify(stabilityAssist);
+
+        if (inputModeDropdownTmp != null)
+            inputModeDropdownTmp.SetValueWithoutNotify(inputMode);
     }
 
     private void ApplyAll()
@@ -157,6 +180,14 @@ public class SettingsManager : MonoBehaviour
         PlayerPrefs.Save();
     }
 
+    private void OnInputModeChanged(int index)
+    {
+        int mode = Mathf.Clamp(index, 0, 1);
+        PlayerPrefs.SetInt(InputModeKey, mode);
+        PlayerPrefs.Save();
+        ApplyInputModeInScene((InputMode)mode);
+    }
+
     private bool GetMusicEnabled()
     {
         return PlayerPrefs.GetInt(MusicEnabledKey, defaultMusicEnabled ? 1 : 0) == 1;
@@ -165,5 +196,28 @@ public class SettingsManager : MonoBehaviour
     private void ApplyMusicState(bool enabled)
     {
         AudioManager.SetMusicEnabled(enabled);
+    }
+
+    private void ApplyInputModeInScene(InputMode mode)
+    {
+        if (carController == null && mobileControls == null)
+            return;
+
+        ApplyInputMode(mode, carController, mobileControls);
+    }
+
+    public static InputMode GetInputMode(InputMode fallback)
+    {
+        int mode = Mathf.Clamp(PlayerPrefs.GetInt(InputModeKey, (int)fallback), 0, 1);
+        return (InputMode)mode;
+    }
+
+    public static void ApplyInputMode(InputMode mode, SimpleCarController car, MobileCarControls mobileControls)
+    {
+        if (mobileControls != null)
+            mobileControls.enabled = mode == InputMode.Mobile;
+
+        if (car != null)
+            car.SetExternalInputEnabled(mode == InputMode.Mobile);
     }
 }

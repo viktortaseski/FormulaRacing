@@ -71,6 +71,18 @@ public class SimpleCarController : MonoBehaviour
         set => maxSpeedKphMultiplier = Mathf.Max(0.1f, value);
     }
 
+    public void SetExternalInputEnabled(bool enabled)
+    {
+        useExternalInput = enabled;
+        if (!enabled)
+        {
+            steerInput = 0f;
+            throttleInput = 0f;
+            brakeInput = 0f;
+            currentSteerInput = 0f;
+        }
+    }
+
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
