@@ -178,6 +178,8 @@ public class SimpleCarController : MonoBehaviour
     // ===== Steering (Front Wheels) =====
     private void ApplySteering(float steerInputValue)
     {
+        float sensitivity = SettingsManager.GetSteeringSensitivityMultiplier();
+        float adjustedInput = Mathf.Clamp(steerInputValue * sensitivity, -1f, 1f);
         float steerMultiplier = GetSteerMultiplier();
         float speedKph = GetSpeedKph();
         float maxAngle = maxSteerAngle;
@@ -187,7 +189,7 @@ public class SimpleCarController : MonoBehaviour
             maxAngle = Mathf.Lerp(maxSteerAngle, highSpeedMaxSteerAngle, t);
         }
 
-        float steer = steerInputValue * maxAngle * steerMultiplier;
+        float steer = adjustedInput * maxAngle * steerMultiplier;
 
         frontLeftWheel.steerAngle = steer;
         frontRightWheel.steerAngle = steer;

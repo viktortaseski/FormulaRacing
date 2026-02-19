@@ -923,12 +923,10 @@ MonoBehaviour:
   musicToggle: {fileID: 659891696}
   brakeAssistDropdownTmp: {fileID: 635614362}
   stabilityAssistDropdownTmp: {fileID: 583983928}
-  inputModeDropdownTmp: {fileID: 583983928}
-  defaultSteeringSensitivity: 1
+  defaultSteeringSensitivity: 0.5
   defaultMusicEnabled: 1
   defaultBrakeAssist: 2
   defaultStabilityAssist: 2
-  defaultInputMode: 0
   carController: {fileID: 0}
   mobileControls: {fileID: 0}
 --- !u!4 &270162361
@@ -1103,7 +1101,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 2071192158}
   m_HandleRect: {fileID: 2071192157}
   m_Direction: 2
-  m_Value: 0
+  m_Value: 0.5
   m_Size: 0.2
   m_NumberOfSteps: 0
   m_OnValueChanged:
