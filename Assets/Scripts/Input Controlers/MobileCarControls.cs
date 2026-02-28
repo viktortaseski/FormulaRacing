@@ -51,6 +51,7 @@ public class MobileCarControls : MonoBehaviour
         ComputeThrottleBrake(move, out var throttle, out var brake);
         float steer = UpdateSteer();
         car.SetInputs(steer, throttle, brake);
+        car.SetInputSpeedMultiplier(ReadSpeedPercent());
     }
 
     // ----------------------------
@@ -115,6 +116,14 @@ public class MobileCarControls : MonoBehaviour
             move = -Mathf.Clamp01(brakeStrength);
 
         return move;
+    }
+
+    private float ReadSpeedPercent()
+    {
+        if (throttleSlider == null)
+            return 0f;
+
+        return Mathf.Clamp01(throttleSlider.value * throttleSensitivity);
     }
 
     private void ComputeThrottleBrake(float move, out float throttle, out float brake)

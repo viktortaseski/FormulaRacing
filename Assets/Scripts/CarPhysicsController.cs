@@ -32,6 +32,9 @@ public class SimpleCarController : MonoBehaviour
     [SerializeField] private float maxSpeedKph = 240f;
     [SerializeField] private float speedLimiterRangeKph = 15f;
     [SerializeField] private float maxSpeedKphMultiplier = 1f;
+    [SerializeField][Range(0f, 1f)] private float overspeedBrakeStrength = 0.2f;
+    [SerializeField] private float overspeedBrakeRangeKph = 10f;
+    private float inputSpeedMultiplier = 1f;
     [Header("High Speed Steering")]
     [Tooltip("Start reducing max steer angle at this speed (kph).")]
     [SerializeField] private float highSpeedSteerStartKph = 120f;
@@ -69,6 +72,11 @@ public class SimpleCarController : MonoBehaviour
     {
         get => maxSpeedKphMultiplier;
         set => maxSpeedKphMultiplier = Mathf.Max(0.1f, value);
+    }
+
+    public void SetInputSpeedMultiplier(float multiplier)
+    {
+        inputSpeedMultiplier = Mathf.Clamp01(multiplier);
     }
 
     public void SetExternalInputEnabled(bool enabled)
@@ -215,6 +223,19 @@ public class SimpleCarController : MonoBehaviour
             brake = idleBrakeStrength;
         }
 
+        if (limitTopSpeed && rb != null && maxSpeedKph > 0f)
+        {
+            float speedKph = GetSpeedKph();
+            float effectiveMaxSpeed = GetEffectiveMaxSpeedKph();
+            if (speedKph > effectiveMaxSpeed)
+            {
+                float range = Mathf.Max(0.1f, overspeedBrakeRangeKph);
+                float t = Mathf.InverseLerp(effectiveMaxSpeed, effectiveMaxSpeed + range, speedKph);
+                float overspeedBrake = Mathf.Clamp01(t) * Mathf.Clamp01(overspeedBrakeStrength);
+                brake = Mathf.Max(brake, overspeedBrake);
+            }
+        }
+
         rearLeftWheel.brakeTorque = brake * brakeForce;
         rearRightWheel.brakeTorque = brake * brakeForce;
         frontLeftWheel.brakeTorque = brake * brakeForce;
@@ -249,12 +270,17 @@ public class SimpleCarController : MonoBehaviour
             return 1f;
 
         float speedKph = Mathf.Abs(forwardSpeed) * 3.6f;
-        float effectiveMaxSpeed = maxSpeedKph * maxSpeedKphMultiplier;
+        float effectiveMaxSpeed = GetEffectiveMaxSpeedKph();
         if (speedLimiterRangeKph <= 0f)
             return speedKph >= effectiveMaxSpeed ? 0f : 1f;
 
         float startKph = Mathf.Max(0f, effectiveMaxSpeed - speedLimiterRangeKph);
         float t = Mathf.InverseLerp(startKph, effectiveMaxSpeed, speedKph);
         return 1f - Mathf.Clamp01(t);
+    }
+
+    private float GetEffectiveMaxSpeedKph()
+    {
+        return maxSpeedKph * maxSpeedKphMultiplier * Mathf.Clamp01(inputSpeedMultiplier);
     }
 }
