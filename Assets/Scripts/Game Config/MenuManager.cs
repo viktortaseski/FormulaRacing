@@ -4,12 +4,56 @@ using UnityEngine.SceneManagement;
 public class MenuManager : MonoBehaviour
 {
     [SerializeField] private GarageMenu garageMenu;
+    [SerializeField] private GameObject mainMenuPanel;
+    [SerializeField] private GameObject trackSelectionPanel;
+    [SerializeField] private string drivingSceneName = "Multiplayer";
 
     public void StartFreePractice()
     {
+        OpenTrackSelection();
+    }
+
+    public void OpenTrackSelection()
+    {
+        if (mainMenuPanel != null)
+            mainMenuPanel.SetActive(false);
+
+        if (trackSelectionPanel != null)
+            trackSelectionPanel.SetActive(true);
+    }
+
+    public void BackFromTrackSelection()
+    {
+        if (trackSelectionPanel != null)
+            trackSelectionPanel.SetActive(false);
+
+        if (mainMenuPanel != null)
+            mainMenuPanel.SetActive(true);
+    }
+
+    public void StartFreePracticeMonza()
+    {
+        StartFreePracticeWithTrack(TrackId.Monza);
+    }
+
+    public void StartFreePracticeSingapore()
+    {
+        StartFreePracticeWithTrack(TrackId.Singapore);
+    }
+
+    public void StartFreePracticeWithTrackIndex(int trackIndex)
+    {
+        if (!System.Enum.IsDefined(typeof(TrackId), trackIndex))
+            trackIndex = (int)TrackId.Monza;
+
+        StartFreePracticeWithTrack((TrackId)trackIndex);
+    }
+
+    private void StartFreePracticeWithTrack(TrackId track)
+    {
+        TrackSelectionState.SetSelectedTrack(track);
         Time.timeScale = 1f;
-        // Load your driving scene (update the name! since now multiplayer is called)
-        SceneManager.LoadScene("Multiplayer");
+        SceneManager.LoadScene(drivingSceneName);
     }
 
     public void OpenMultiplayer()

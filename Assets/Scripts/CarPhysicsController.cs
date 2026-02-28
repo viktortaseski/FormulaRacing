@@ -24,6 +24,9 @@ public class SimpleCarController : MonoBehaviour
     [SerializeField] private float brakeForce = 3000f;
     [SerializeField] private bool autoBrakeWhenIdle = true;
     [SerializeField][Range(0f, 1f)] private float idleBrakeStrength = 0.15f;
+    [SerializeField] private float idleBrakeStartKph = 8f;
+    [SerializeField] private float idleBrakeFullKph = 45f;
+    [SerializeField][Min(0.1f)] private float idleBrakeRampExponent = 1.35f;
     [Header("Brake Input")]
     [SerializeField][Range(0f, 1f)] private float brakeButtonStrength = 1f;
     [SerializeField] private bool cutThrottleWhenBraking = true;
@@ -37,11 +40,16 @@ public class SimpleCarController : MonoBehaviour
     private float inputSpeedMultiplier = 1f;
     [Header("High Speed Steering")]
     [Tooltip("Start reducing max steer angle at this speed (kph).")]
-    [SerializeField] private float highSpeedSteerStartKph = 120f;
+    [SerializeField] private float highSpeedSteerStartKph = 150f;
     [Tooltip("Max steer angle at or above highSpeedSteerEndKph (kph).")]
-    [SerializeField] private float highSpeedMaxSteerAngle = 12f;
+    [SerializeField] private float highSpeedMaxSteerAngle = 20f;
     [Tooltip("Fully apply high-speed steer limit at this speed (kph).")]
-    [SerializeField] private float highSpeedSteerEndKph = 200f;
+    [SerializeField] private float highSpeedSteerEndKph = 280f;
+    [Header("Low Speed Steering")]
+    [Tooltip("Extra steering authority near standstill.")]
+    [SerializeField][Range(1f, 1.6f)] private float lowSpeedSteerBoost = 1.2f;
+    [Tooltip("Low-speed steering boost fades out by this speed (kph).")]
+    [SerializeField] private float lowSpeedSteerBoostEndKph = 45f;
     [SerializeField] private bool smoothSteering = true;
     [SerializeField] private float steerInputSpeed = 4f;
     [SerializeField] private float steerReturnSpeed = 6f;
@@ -53,7 +61,8 @@ public class SimpleCarController : MonoBehaviour
         new Keyframe(200f, 0.45f),
         new Keyframe(280f, 0.35f)
     );
-    [SerializeField] private float minSteerMultiplier = 0.25f;
+    [SerializeField] private float minSteerMultiplier = 0.5f;
+    [SerializeField] private float maxSteerMultiplier = 1.2f;
     private float currentTorque;
     private float motorTorqueMultiplier = 1f;
     private float currentSteerInput;
@@ -160,7 +169,7 @@ public class SimpleCarController : MonoBehaviour
 
         steer = Mathf.Clamp(driveInput.x, -1f, 1f);
         throttle = Mathf.Clamp(driveInput.y, -1f, 1f);
-        brake = autoBrakeWhenIdle && Mathf.Approximately(throttle, 0f) ? idleBrakeStrength : 0f;
+        brake = GetIdleBrake(throttle);
 
         float uiBrake = brakeButtonHeld ? brakeButtonStrength : 0f;
         float actionBrake = brakeActionHeld ? brakeButtonStrength : 0f;
@@ -218,10 +227,7 @@ public class SimpleCarController : MonoBehaviour
     private void ApplyBrakes(float brakeInputValue, float throttleInputValue)
     {
         var brake = Mathf.Clamp01(brakeInputValue);
-        if (brake <= 0f && autoBrakeWhenIdle && Mathf.Approximately(throttleInputValue, 0f))
-        {
-            brake = idleBrakeStrength;
-        }
+        brake = Mathf.Max(brake, GetIdleBrake(throttleInputValue));
 
         if (limitTopSpeed && rb != null && maxSpeedKph > 0f)
         {
@@ -247,8 +253,34 @@ public class SimpleCarController : MonoBehaviour
         if (rb == null || steerSensitivityBySpeed == null)
             return 1f;
 
-        float value = steerSensitivityBySpeed.Evaluate(GetSpeedKph());
-        return Mathf.Clamp(value, minSteerMultiplier, 1f);
+        float speedKph = GetSpeedKph();
+        float minMultiplier = Mathf.Clamp(minSteerMultiplier, 0.1f, 2f);
+        float maxMultiplier = Mathf.Max(minMultiplier, maxSteerMultiplier);
+        float baseMultiplier = Mathf.Clamp(steerSensitivityBySpeed.Evaluate(speedKph), minMultiplier, maxMultiplier);
+
+        float boost = 1f;
+        if (lowSpeedSteerBoost > 1f && lowSpeedSteerBoostEndKph > 0f)
+        {
+            float t = 1f - Mathf.Clamp01(speedKph / lowSpeedSteerBoostEndKph);
+            boost = Mathf.Lerp(1f, lowSpeedSteerBoost, t);
+        }
+
+        return Mathf.Clamp(baseMultiplier * boost, minMultiplier, maxMultiplier);
+    }
+
+    private float GetIdleBrake(float throttleInputValue)
+    {
+        if (!autoBrakeWhenIdle || !Mathf.Approximately(throttleInputValue, 0f))
+            return 0f;
+
+        float speedKph = GetSpeedKph();
+        if (speedKph <= idleBrakeStartKph)
+            return 0f;
+
+        float fullKph = Mathf.Max(idleBrakeStartKph + 0.1f, idleBrakeFullKph);
+        float t = Mathf.InverseLerp(idleBrakeStartKph, fullKph, speedKph);
+        float ramp = Mathf.Pow(Mathf.Clamp01(t), Mathf.Max(0.1f, idleBrakeRampExponent));
+        return Mathf.Clamp01(idleBrakeStrength) * ramp;
     }
 
     private float GetSpeedKph()

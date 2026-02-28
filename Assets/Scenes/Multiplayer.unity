@@ -173,7 +173,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 94c9e0dd85e484bbd966cb651e58d397, type: 3}
       propertyPath: m_Name
-      value: singapore
+      value: Singapore
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -183,6 +183,11 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 1444818504}
   m_SourcePrefab: {fileID: 100100000, guid: 94c9e0dd85e484bbd966cb651e58d397, type: 3}
+--- !u!1 &99789225 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 94c9e0dd85e484bbd966cb651e58d397, type: 3}
+  m_PrefabInstance: {fileID: 99789224}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &297802119 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 973159478970341978, guid: f9860db3ec299441484a6721f71259cd, type: 3}
@@ -283,6 +288,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 637342894}
+  - component: {fileID: 637342895}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -306,6 +312,21 @@ Transform:
   - {fileID: 1005474501}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &637342895
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 637342893}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 44328afd9f6f14397b19d56218215bfb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TrackMapSelector
+  monzaRoot: {fileID: 2751722204963171462}
+  singaporeRoot: {fileID: 99789225}
+  autoFindByNameIfMissing: 1
 --- !u!1 &691921875 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 1689453812811978098, guid: f9860db3ec299441484a6721f71259cd, type: 3}
@@ -1570,7 +1591,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3277429107915372092}
   m_Layer: 0
-  m_Name: Circuit
+  m_Name: Monza
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3230,7 +3251,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6111598913249388858, guid: f9860db3ec299441484a6721f71259cd, type: 3}
       propertyPath: limitTopSpeed
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6111598913249388858, guid: f9860db3ec299441484a6721f71259cd, type: 3}
       propertyPath: maxSteerAngle
