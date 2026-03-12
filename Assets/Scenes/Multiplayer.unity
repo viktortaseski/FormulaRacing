@@ -559,6 +559,10 @@ MonoBehaviour:
   fovBoost: 5
   useForwardAcceleration: 1
   accelThreshold: 0.4
+  accelFullBoost: 6
+  accelReleaseThreshold: 1.1
+  minSpeedForBoostKph: 25
+  accelSmoothing: 10
   fovLerpSpeed: 6
 --- !u!1001 &920923289
 PrefabInstance:
@@ -5272,6 +5276,22 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 926478759364170078, guid: f9860db3ec299441484a6721f71259cd, type: 3}
+      propertyPath: Pan2D
+      value: -0.212
+      objectReference: {fileID: 0}
+    - target: {fileID: 926478759364170078, guid: f9860db3ec299441484a6721f71259cd, type: 3}
+      propertyPath: m_Pitch
+      value: 0.08
+      objectReference: {fileID: 0}
+    - target: {fileID: 926478759364170078, guid: f9860db3ec299441484a6721f71259cd, type: 3}
+      propertyPath: Priority
+      value: 67
+      objectReference: {fileID: 0}
+    - target: {fileID: 926478759364170078, guid: f9860db3ec299441484a6721f71259cd, type: 3}
+      propertyPath: m_Volume
+      value: 0.128
+      objectReference: {fileID: 0}
     - target: {fileID: 1005029419683944890, guid: f9860db3ec299441484a6721f71259cd, type: 3}
       propertyPath: m_Enabled
       value: 0
@@ -5547,6 +5567,18 @@ PrefabInstance:
     - target: {fileID: 5631754859447861286, guid: f9860db3ec299441484a6721f71259cd, type: 3}
       propertyPath: m_Enabled
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5682477852472025390, guid: f9860db3ec299441484a6721f71259cd, type: 3}
+      propertyPath: m_Pitch
+      value: -0.13
+      objectReference: {fileID: 0}
+    - target: {fileID: 5682477852472025390, guid: f9860db3ec299441484a6721f71259cd, type: 3}
+      propertyPath: Priority
+      value: 73
+      objectReference: {fileID: 0}
+    - target: {fileID: 5682477852472025390, guid: f9860db3ec299441484a6721f71259cd, type: 3}
+      propertyPath: m_Volume
+      value: 0.386
       objectReference: {fileID: 0}
     - target: {fileID: 5873283785143193616, guid: f9860db3ec299441484a6721f71259cd, type: 3}
       propertyPath: m_Enabled

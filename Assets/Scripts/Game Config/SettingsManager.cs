@@ -9,8 +9,8 @@ public class SettingsManager : MonoBehaviour
     private const string BrakeAssistKey = "settings.brakeAssist";
     private const string StabilityAssistKey = "settings.stabilityAssist";
     public const float DefaultSteerSensitivityNormalized = 0.5f;
-    public const float SteeringSensitivityMinMultiplier = 0.5f;
-    public const float SteeringSensitivityMaxMultiplier = 1.5f;
+    public const float SteeringSensitivityMinMultiplier = 0.3f;
+    public const float SteeringSensitivityMaxMultiplier = 1f;
 
     private enum AssistLevel
     {

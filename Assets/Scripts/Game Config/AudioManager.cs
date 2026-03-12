@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 [DisallowMultipleComponent]
 public class AudioManager : MonoBehaviour
@@ -20,6 +21,9 @@ public class AudioManager : MonoBehaviour
             return;
         }
 
+        if (transform.parent != null)
+            transform.SetParent(null, true);
+
         instance = this;
         DontDestroyOnLoad(gameObject);
 
@@ -31,6 +35,25 @@ public class AudioManager : MonoBehaviour
     {
         if (themeSong != null && !themeSong.isPlaying && GetMusicEnabled(defaultMusicEnabled))
             themeSong.Play();
+    }
+
+    private void OnEnable()
+    {
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    private void OnDisable()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        if (instance != this)
+            return;
+
+        CacheSources();
+        ApplyMusicEnabled(GetMusicEnabled(defaultMusicEnabled));
     }
 
     public static void SetMusicEnabled(bool enabled)
