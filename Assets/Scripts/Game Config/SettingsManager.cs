@@ -202,4 +202,36 @@ public class SettingsManager : MonoBehaviour
         return Mathf.Lerp(SteeringSensitivityMinMultiplier, SteeringSensitivityMaxMultiplier, t);
     }
 
+    public static int GetBrakeAssistLevelIndex(int fallback = (int)AssistLevel.High)
+    {
+        int safeFallback = Mathf.Clamp(fallback, 0, 3);
+        return Mathf.Clamp(PlayerPrefs.GetInt(BrakeAssistKey, safeFallback), 0, 3);
+    }
+
+    public static float GetBrakeAssistTurningMultiplier(int fallback = (int)AssistLevel.High)
+    {
+        switch (GetTurningAssistLevelIndex(fallback))
+        {
+            case (int)AssistLevel.Off:
+                return 0f;
+            case (int)AssistLevel.Low:
+                return 0.4f;
+            case (int)AssistLevel.Medium:
+                return 0.7f;
+            case (int)AssistLevel.High:
+            default:
+                return 1f;
+        }
+    }
+
+    public static int GetTurningAssistLevelIndex(int fallback = (int)AssistLevel.High)
+    {
+        int safeFallback = Mathf.Clamp(fallback, 0, 3);
+        int brakeLevel = Mathf.Clamp(PlayerPrefs.GetInt(BrakeAssistKey, safeFallback), 0, 3);
+        int stabilityLevel = Mathf.Clamp(PlayerPrefs.GetInt(StabilityAssistKey, safeFallback), 0, 3);
+
+        // Support either dropdown being used for turning assist: lower level wins.
+        return Mathf.Min(brakeLevel, stabilityLevel);
+    }
+
 }

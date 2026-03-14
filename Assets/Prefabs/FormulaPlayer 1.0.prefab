@@ -4684,6 +4684,13 @@ MonoBehaviour:
   enableYawStability: 1
   yawStability: 2
   yawMinSpeedKph: 60
+  useBrakeAssistTurningDropdown: 1
+  turningAssistOffMultiplier: 0
+  turningAssistLowMultiplier: 0.4
+  turningAssistMediumMultiplier: 0.7
+  turningAssistHighMultiplier: 1
+  scaleWheelFrictionWithTurningAssist: 1
+  offSidewaysFrictionStiffnessMultiplier: 0.6
 --- !u!146 &1155419879508146388 stripped
 WheelCollider:
   m_CorrespondingSourceObject: {fileID: 7840241068390479425, guid: d585abdcd6d454f19aba1d70aaf43af6, type: 3}

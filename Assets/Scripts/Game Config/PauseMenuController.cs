@@ -5,6 +5,7 @@ public class PauseMenuController : MonoBehaviour
     [SerializeField] private GameObject menuPanel;
     [SerializeField] private bool startPaused = false;
     [SerializeField] private bool pauseTime = true;
+    private bool isMenuVisible;
 
     private void Awake()
     {
@@ -13,14 +14,12 @@ public class PauseMenuController : MonoBehaviour
             menuPanel.SetActive(startPaused);
         }
 
-        if (startPaused)
-        {
-            Pause();
-        }
-        else
-        {
-            Resume();
-        }
+        SyncPauseState(force: true);
+    }
+
+    private void LateUpdate()
+    {
+        SyncPauseState();
     }
 
     public void OpenMenu()
@@ -60,6 +59,22 @@ public class PauseMenuController : MonoBehaviour
         }
     }
 
+    public static bool HasVisibleMenuPanel()
+    {
+        var controllers = Resources.FindObjectsOfTypeAll<PauseMenuController>();
+        for (int i = 0; i < controllers.Length; i++)
+        {
+            var controller = controllers[i];
+            if (controller == null || !controller.pauseTime)
+                continue;
+
+            if (controller.menuPanel != null && controller.menuPanel.activeInHierarchy)
+                return true;
+        }
+
+        return false;
+    }
+
     private void Pause()
     {
         if (pauseTime)
@@ -74,5 +89,19 @@ public class PauseMenuController : MonoBehaviour
         {
             Time.timeScale = 1f;
         }
+    }
+
+    private void SyncPauseState(bool force = false)
+    {
+        bool menuIsVisible = menuPanel != null && menuPanel.activeInHierarchy;
+        if (!force && menuIsVisible == isMenuVisible)
+            return;
+
+        isMenuVisible = menuIsVisible;
+
+        if (isMenuVisible)
+            Pause();
+        else
+            Resume();
     }
 }

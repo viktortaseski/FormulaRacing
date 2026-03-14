@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class FormulaAudio : MonoBehaviour
 {
@@ -15,6 +16,18 @@ public class FormulaAudio : MonoBehaviour
     public float accelVolumeBoost = 1.2f;
     [Tooltip("Speed (m/s) that maps to max pitch.")]
     public float maxSpeed = 80f;
+    [Header("Scene Control")]
+    [SerializeField] private string settingsSceneName = "Settings";
+
+    private void OnEnable()
+    {
+        SceneManager.activeSceneChanged += OnActiveSceneChanged;
+    }
+
+    private void OnDisable()
+    {
+        SceneManager.activeSceneChanged -= OnActiveSceneChanged;
+    }
 
     void Start()
     {
@@ -24,19 +37,23 @@ public class FormulaAudio : MonoBehaviour
         if (carRigidbody == null)
             carRigidbody = GetComponent<Rigidbody>();
 
-        if (engineIdleSource != null)
-            engineIdleSource.Play();
-
-        if (engineAccelSource != null)
-            engineAccelSource.Play();
+        SyncAudioState();
     }
 
     void Update()
     {
+        if (IsSettingsSceneActive())
+            return;
+
         if (carRigidbody == null) return;
 
         var speed = carRigidbody.linearVelocity.magnitude;
         UpdateEngineSounds(speed);
+    }
+
+    private void OnActiveSceneChanged(Scene current, Scene next)
+    {
+        SyncAudioState();
     }
 
     private void UpdateEngineSounds(float speed)
@@ -57,5 +74,44 @@ public class FormulaAudio : MonoBehaviour
 
         if (engineAccelSource != null)
             engineAccelSource.pitch = pitch;
+    }
+
+    private void SyncAudioState()
+    {
+        if (IsSettingsSceneActive())
+        {
+            PauseSource(engineIdleSource);
+            PauseSource(engineAccelSource);
+            PauseSource(gearShiftSource);
+            return;
+        }
+
+        ResumeOrPlaySource(engineIdleSource);
+        ResumeOrPlaySource(engineAccelSource);
+    }
+
+    private bool IsSettingsSceneActive()
+    {
+        if (string.IsNullOrEmpty(settingsSceneName))
+            return false;
+
+        return SceneManager.GetActiveScene().name == settingsSceneName;
+    }
+
+    private void PauseSource(AudioSource source)
+    {
+        if (source != null && source.isPlaying)
+            source.Pause();
+    }
+
+    private void ResumeOrPlaySource(AudioSource source)
+    {
+        if (source == null || source.isPlaying)
+            return;
+
+        source.UnPause();
+
+        if (!source.isPlaying)
+            source.Play();
     }
 }

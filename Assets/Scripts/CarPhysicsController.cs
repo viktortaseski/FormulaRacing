@@ -47,7 +47,9 @@ public class SimpleCarController : MonoBehaviour
     [SerializeField] private float highSpeedSteerEndKph = 280f;
     [Header("Low Speed Steering")]
     [Tooltip("Extra steering authority near standstill.")]
-    [SerializeField][Range(1f, 1.6f)] private float lowSpeedSteerBoost = 1.2f;
+    [SerializeField][Range(1f, 2f)] private float lowSpeedSteerBoost = 1.35f;
+    [Tooltip("Extra steering angle near standstill.")]
+    [SerializeField][Range(1f, 1.6f)] private float lowSpeedSteerAngleBoost = 1.15f;
     [Tooltip("Low-speed steering boost fades out by this speed (kph).")]
     [SerializeField] private float lowSpeedSteerBoostEndKph = 45f;
     [SerializeField] private bool smoothSteering = true;
@@ -200,10 +202,17 @@ public class SimpleCarController : MonoBehaviour
         float steerMultiplier = GetSteerMultiplier();
         float speedKph = GetSpeedKph();
         float maxAngle = maxSteerAngle;
+        // Reducing the angle at higher speeds
         if (speedKph > highSpeedSteerStartKph && highSpeedSteerEndKph > highSpeedSteerStartKph)
         {
             float t = Mathf.InverseLerp(highSpeedSteerStartKph, highSpeedSteerEndKph, speedKph);
             maxAngle = Mathf.Lerp(maxSteerAngle, highSpeedMaxSteerAngle, t);
+        }
+
+        if (lowSpeedSteerAngleBoost > 1f && lowSpeedSteerBoostEndKph > 0f)
+        {
+            float t = 1f - Mathf.Clamp01(speedKph / lowSpeedSteerBoostEndKph);
+            maxAngle *= Mathf.Lerp(1f, lowSpeedSteerAngleBoost, t);
         }
 
         float steer = adjustedInput * maxAngle * steerMultiplier;

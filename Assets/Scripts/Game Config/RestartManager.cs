@@ -75,7 +75,6 @@ public class RestartManager : MonoBehaviour
 
     public void BackToRacing()
     {
-        Time.timeScale = 1f;
         if (settingsLoadedAdditively)
         {
             var settingsScene = SceneManager.GetSceneByName(settingsSceneName);
@@ -94,6 +93,7 @@ public class RestartManager : MonoBehaviour
                     SceneManager.SetActiveScene(lastScene);
             }
 
+            ApplyGameplayPauseState();
             return;
         }
 
@@ -104,6 +104,11 @@ public class RestartManager : MonoBehaviour
         }
 
         LoadMainMenu();
+    }
+
+    private void ApplyGameplayPauseState()
+    {
+        Time.timeScale = PauseMenuController.HasVisibleMenuPanel() ? 0f : 1f;
     }
 
     private void HandleKeyboardInput()

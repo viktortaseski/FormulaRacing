@@ -32,6 +32,18 @@ public class VehicleStability : MonoBehaviour
     [SerializeField] private float yawStability = 2f;
     [SerializeField] private float yawMinSpeedKph = 60f;
 
+    [Header("Brake Assist Turning")]
+    [SerializeField] private bool useBrakeAssistTurningDropdown = true;
+    [SerializeField][Range(0f, 1f)] private float turningAssistOffMultiplier = 0f;
+    [SerializeField][Range(0f, 1f)] private float turningAssistLowMultiplier = 0.4f;
+    [SerializeField][Range(0f, 1f)] private float turningAssistMediumMultiplier = 0.7f;
+    [SerializeField][Range(0f, 1f)] private float turningAssistHighMultiplier = 1f;
+    [SerializeField] private bool scaleWheelFrictionWithTurningAssist = true;
+    [SerializeField][Range(0.2f, 1f)] private float offSidewaysFrictionStiffnessMultiplier = 0.6f;
+
+    private WheelCollider[] assistWheels = new WheelCollider[0];
+    private float[] baseSidewaysStiffness = new float[0];
+
     public float DownforceMultiplier
     {
         get => downforceMultiplier;
@@ -42,6 +54,13 @@ public class VehicleStability : MonoBehaviour
     {
         if (rb == null)
             rb = GetComponent<Rigidbody>();
+
+        CacheWheelFrictionBaselines();
+    }
+
+    private void OnDisable()
+    {
+        RestoreBaseWheelFriction();
     }
 
     private void FixedUpdate()
@@ -51,10 +70,12 @@ public class VehicleStability : MonoBehaviour
 
     private void ApplyStabilityForces()
     {
+        float turningAssistMultiplier = GetTurningAssistMultiplier();
+        ApplyWheelFrictionAssist(turningAssistMultiplier);
         ApplyDownforce();
         ApplyAirborneStabilizer();
-        ApplySideSlipDamping();
-        ApplyYawStability();
+        ApplySideSlipDamping(turningAssistMultiplier);
+        ApplyYawStability(turningAssistMultiplier);
     }
 
     private void ApplyDownforce()
@@ -90,7 +111,7 @@ public class VehicleStability : MonoBehaviour
         rb.AddForce(-transform.up * force, ForceMode.Acceleration);
     }
 
-    private void ApplySideSlipDamping()
+    private void ApplySideSlipDamping(float turningAssistMultiplier)
     {
         if (!enableSideSlipDamping || rb == null)
             return;
@@ -101,12 +122,17 @@ public class VehicleStability : MonoBehaviour
         if (GetSpeedKph() < sideSlipMinSpeedKph)
             return;
 
+        if (turningAssistMultiplier <= 0f)
+            return;
+
+        float effectiveDamping = sideSlipDamping * turningAssistMultiplier;
+        float effectiveMaxSideSlipAcceleration = maxSideSlipAcceleration * turningAssistMultiplier;
         float sideSpeed = Vector3.Dot(rb.linearVelocity, transform.right);
-        float accel = Mathf.Clamp(-sideSpeed * sideSlipDamping, -maxSideSlipAcceleration, maxSideSlipAcceleration);
+        float accel = Mathf.Clamp(-sideSpeed * effectiveDamping, -effectiveMaxSideSlipAcceleration, effectiveMaxSideSlipAcceleration);
         rb.AddForce(transform.right * accel, ForceMode.Acceleration);
     }
 
-    private void ApplyYawStability()
+    private void ApplyYawStability(float turningAssistMultiplier)
     {
         if (!enableYawStability || rb == null)
             return;
@@ -117,8 +143,82 @@ public class VehicleStability : MonoBehaviour
         if (GetSpeedKph() < yawMinSpeedKph)
             return;
 
+        if (turningAssistMultiplier <= 0f)
+            return;
+
         float yaw = rb.angularVelocity.y;
-        rb.AddTorque(-transform.up * yaw * yawStability, ForceMode.Acceleration);
+        float effectiveYawStability = yawStability * turningAssistMultiplier;
+        rb.AddTorque(-transform.up * yaw * effectiveYawStability, ForceMode.Acceleration);
+    }
+
+    private float GetTurningAssistMultiplier()
+    {
+        if (!useBrakeAssistTurningDropdown)
+            return 1f;
+
+        switch (SettingsManager.GetTurningAssistLevelIndex(3))
+        {
+            case 0:
+                return turningAssistOffMultiplier;
+            case 1:
+                return turningAssistLowMultiplier;
+            case 2:
+                return turningAssistMediumMultiplier;
+            case 3:
+            default:
+                return turningAssistHighMultiplier;
+        }
+    }
+
+    private void CacheWheelFrictionBaselines()
+    {
+        var wheels = new System.Collections.Generic.List<WheelCollider>(4);
+        if (frontLeftWheel != null) wheels.Add(frontLeftWheel);
+        if (frontRightWheel != null) wheels.Add(frontRightWheel);
+        if (rearLeftWheel != null) wheels.Add(rearLeftWheel);
+        if (rearRightWheel != null) wheels.Add(rearRightWheel);
+
+        assistWheels = wheels.ToArray();
+        baseSidewaysStiffness = new float[assistWheels.Length];
+        for (int i = 0; i < assistWheels.Length; i++)
+            baseSidewaysStiffness[i] = assistWheels[i].sidewaysFriction.stiffness;
+    }
+
+    private void ApplyWheelFrictionAssist(float turningAssistMultiplier)
+    {
+        if (!scaleWheelFrictionWithTurningAssist || assistWheels == null || baseSidewaysStiffness == null)
+            return;
+
+        float t = Mathf.Clamp01(turningAssistMultiplier);
+        float sidewaysMultiplier = Mathf.Lerp(offSidewaysFrictionStiffnessMultiplier, 1f, t);
+
+        for (int i = 0; i < assistWheels.Length; i++)
+        {
+            var wheel = assistWheels[i];
+            if (wheel == null)
+                continue;
+
+            var sideways = wheel.sidewaysFriction;
+            sideways.stiffness = baseSidewaysStiffness[i] * sidewaysMultiplier;
+            wheel.sidewaysFriction = sideways;
+        }
+    }
+
+    private void RestoreBaseWheelFriction()
+    {
+        if (assistWheels == null || baseSidewaysStiffness == null)
+            return;
+
+        for (int i = 0; i < assistWheels.Length; i++)
+        {
+            var wheel = assistWheels[i];
+            if (wheel == null)
+                continue;
+
+            var sideways = wheel.sidewaysFriction;
+            sideways.stiffness = baseSidewaysStiffness[i];
+            wheel.sidewaysFriction = sideways;
+        }
     }
 
     private bool IsAnyWheelGrounded()
