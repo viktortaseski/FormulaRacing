@@ -32,6 +32,13 @@ public class VehicleStability : MonoBehaviour
     [SerializeField] private float yawStability = 2f;
     [SerializeField] private float yawMinSpeedKph = 60f;
 
+    [Header("Rear Traction Assist")]
+    [Tooltip("Applies a lateral corrective force at the rear axle to prevent the back from sliding out.")]
+    [SerializeField] private bool enableRearTractionAssist = true;
+    [SerializeField] private float rearTractionDamping = 3f;
+    [SerializeField] private float maxRearTractionAcceleration = 10f;
+    [SerializeField] private float rearTractionMinSpeedKph = 30f;
+
     [Header("Brake Assist Turning")]
     [SerializeField] private bool useBrakeAssistTurningDropdown = true;
     [SerializeField][Range(0f, 1f)] private float turningAssistOffMultiplier = 0f;
@@ -76,6 +83,7 @@ public class VehicleStability : MonoBehaviour
         ApplyAirborneStabilizer();
         ApplySideSlipDamping(turningAssistMultiplier);
         ApplyYawStability(turningAssistMultiplier);
+        ApplyRearTractionAssist(turningAssistMultiplier);
     }
 
     private void ApplyDownforce()
@@ -149,6 +157,37 @@ public class VehicleStability : MonoBehaviour
         float yaw = rb.angularVelocity.y;
         float effectiveYawStability = yawStability * turningAssistMultiplier;
         rb.AddTorque(-transform.up * yaw * effectiveYawStability, ForceMode.Acceleration);
+    }
+
+    private void ApplyRearTractionAssist(float turningAssistMultiplier)
+    {
+        if (!enableRearTractionAssist || rb == null)
+            return;
+
+        if (rearLeftWheel == null || rearRightWheel == null)
+            return;
+
+        if (!IsAnyWheelGrounded())
+            return;
+
+        if (GetSpeedKph() < rearTractionMinSpeedKph)
+            return;
+
+        if (turningAssistMultiplier <= 0f)
+            return;
+
+        // Sample the velocity at the rear axle midpoint — this is more accurate than
+        // the centre-of-mass velocity because it accounts for the car's yaw rotation.
+        Vector3 rearAxleMidpoint = (rearLeftWheel.transform.position + rearRightWheel.transform.position) * 0.5f;
+        float rearLateralSpeed = Vector3.Dot(rb.GetPointVelocity(rearAxleMidpoint), transform.right);
+
+        float effectiveDamping = rearTractionDamping * turningAssistMultiplier;
+        float effectiveMax = maxRearTractionAcceleration * turningAssistMultiplier;
+        float accel = Mathf.Clamp(-rearLateralSpeed * effectiveDamping, -effectiveMax, effectiveMax);
+
+        // Applying the force at the rear axle (not CoM) generates a corrective torque
+        // that pulls the rear back into alignment as well as countering the lateral slip.
+        rb.AddForceAtPosition(transform.right * accel, rearAxleMidpoint, ForceMode.Acceleration);
     }
 
     private float GetTurningAssistMultiplier()

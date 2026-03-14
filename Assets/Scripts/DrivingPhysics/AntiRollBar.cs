@@ -2,16 +2,11 @@ using UnityEngine;
 
 public class AntiRollBar : MonoBehaviour
 {
+    [SerializeField] private Rigidbody rb;
     [SerializeField] private WheelCollider leftWheel;
     [SerializeField] private WheelCollider rightWheel;
     [SerializeField] private float antiRollForce = 5000f;
 
-    private Rigidbody rb;
-
-    private void Awake()
-    {
-        rb = GetComponent<Rigidbody>();
-    }
 
     private void FixedUpdate()
     {
