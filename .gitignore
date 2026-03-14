@@ -1,3 +1,4 @@
+
 # Unity generated folders
 Library/
 Temp/
@@ -29,3 +30,6 @@ UserSettings/
 MemoryCaptures/
 Recordings/
 *.dds
+
+# Claude Code
+CLAUDE.md
