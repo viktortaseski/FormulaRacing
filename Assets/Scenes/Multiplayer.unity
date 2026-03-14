@@ -428,7 +428,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 8381351487994929199}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1860173071}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 93f392da7089d4ad9b4173f90612243a, type: 3}
   m_Name: 
@@ -1231,7 +1231,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1860173071}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5ca15971ba60b4cf390cc47d9f1d1cad, type: 3}
   m_Name: 
@@ -1244,6 +1244,7 @@ MonoBehaviour:
   tiltMaxG: 0.35
   tiltDeadzone: 0.05
   invertTilt: 0
+  tiltSmoothing: 6
 --- !u!54 &1860173074 stripped
 Rigidbody:
   m_CorrespondingSourceObject: {fileID: 6477097189189747946, guid: f9860db3ec299441484a6721f71259cd, type: 3}
@@ -5793,7 +5794,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6111598913249388858, guid: f9860db3ec299441484a6721f71259cd, type: 3}
       propertyPath: m_Enabled
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6111598913249388858, guid: f9860db3ec299441484a6721f71259cd, type: 3}
       propertyPath: brakeForce
