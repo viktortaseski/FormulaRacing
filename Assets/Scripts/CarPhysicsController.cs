@@ -20,7 +20,7 @@ public class SimpleCarController : MonoBehaviour
 
     // ===== Car Settings =====
     [SerializeField] private float motorTorque = 1500f;
-    [SerializeField] private float maxSteerAngle = 30f;
+    [SerializeField] private float maxSteerAngle = 35f;
     [SerializeField] private float brakeForce = 3000f;
     [SerializeField] private bool autoBrakeWhenIdle = true;
     [SerializeField][Range(0f, 1f)] private float idleBrakeStrength = 0.15f;
@@ -53,8 +53,20 @@ public class SimpleCarController : MonoBehaviour
     [Tooltip("Low-speed steering boost fades out by this speed (kph).")]
     [SerializeField] private float lowSpeedSteerBoostEndKph = 45f;
     [SerializeField] private bool smoothSteering = true;
-    [SerializeField] private float steerInputSpeed = 4f;
-    [SerializeField] private float steerReturnSpeed = 6f;
+    [Header("Steering Speed Bands")]
+    [Tooltip("Band 1 / Band 2 threshold (kph). Below this uses band 1 values.")]
+    [SerializeField] private float steerBandThreshold1 = 70f;
+    [Tooltip("Band 2 / Band 3 threshold (kph). Above this uses band 3 values.")]
+    [SerializeField] private float steerBandThreshold2 = 120f;
+    [Tooltip("Input/return steer speed below " + nameof(steerBandThreshold1) + " kph.")]
+    [SerializeField] private float steerInputSpeedBand1 = 8f;
+    [SerializeField] private float steerReturnSpeedBand1 = 10f;
+    [Tooltip("Input/return steer speed between band 1 and band 2.")]
+    [SerializeField] private float steerInputSpeedBand2 = 5f;
+    [SerializeField] private float steerReturnSpeedBand2 = 7f;
+    [Tooltip("Input/return steer speed above " + nameof(steerBandThreshold2) + " kph.")]
+    [SerializeField] private float steerInputSpeedBand3 = 2f;
+    [SerializeField] private float steerReturnSpeedBand3 = 3f;
     [SerializeField]
     private AnimationCurve steerSensitivityBySpeed = new AnimationCurve(
         new Keyframe(0f, 1f),
@@ -181,15 +193,40 @@ public class SimpleCarController : MonoBehaviour
             throttle = 0f;
     }
 
+    private void GetSteeringRates(out float inputSpeed, out float returnSpeed)
+    {
+        float kph = GetSpeedKph();
+
+        if (kph <= steerBandThreshold1)
+        {
+            inputSpeed = steerInputSpeedBand1;
+            returnSpeed = steerReturnSpeedBand1;
+        }
+        else if (kph <= steerBandThreshold2)
+        {
+            float t = Mathf.InverseLerp(steerBandThreshold1, steerBandThreshold2, kph);
+            inputSpeed = Mathf.Lerp(steerInputSpeedBand1, steerInputSpeedBand2, t);
+            returnSpeed = Mathf.Lerp(steerReturnSpeedBand1, steerReturnSpeedBand2, t);
+        }
+        else
+        {
+            float t = Mathf.InverseLerp(steerBandThreshold2, steerBandThreshold2 + 80f, kph);
+            inputSpeed = Mathf.Lerp(steerInputSpeedBand2, steerInputSpeedBand3, t);
+            returnSpeed = Mathf.Lerp(steerReturnSpeedBand2, steerReturnSpeedBand3, t);
+        }
+    }
+
     private float SmoothSteerInput(float target, bool allowSmoothing)
     {
-        if (!allowSmoothing || !smoothSteering || steerInputSpeed <= 0f)
+        GetSteeringRates(out float inputSpeed, out float returnSpeed);
+
+        if (!allowSmoothing || !smoothSteering || inputSpeed <= 0f)
         {
             currentSteerInput = target;
             return target;
         }
 
-        float rate = Mathf.Abs(target) > Mathf.Abs(currentSteerInput) ? steerInputSpeed : steerReturnSpeed;
+        float rate = Mathf.Abs(target) > Mathf.Abs(currentSteerInput) ? inputSpeed : returnSpeed;
         currentSteerInput = Mathf.MoveTowards(currentSteerInput, target, rate * Time.fixedDeltaTime);
         return currentSteerInput;
     }

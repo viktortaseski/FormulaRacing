@@ -24,7 +24,10 @@ public class MobileCarControls : MonoBehaviour
     [SerializeField] private float tiltDeadzone = 0.05f;
     [Tooltip("Invert tilt direction if steering feels reversed.")]
     [SerializeField] private bool invertTilt = false;
+    [Tooltip("How fast tilt steering follows the phone angle. Lower = smoother, higher = snappier. Typical range 3–12.")]
+    [SerializeField][Range(1f, 20f)] private float tiltSmoothing = 6f;
 
+    private float currentTiltSteer = 0f;
     private bool brakeHeld = false;
     private Rigidbody carRb;
 
@@ -79,7 +82,10 @@ public class MobileCarControls : MonoBehaviour
 
         // Normalize by maxG so that when |accel| = tiltMaxG, steer = ±1
         float normalized = Mathf.Clamp(raw / tiltMaxG, -1f, 1f);
-        return invertTilt ? -normalized : normalized;
+        if (invertTilt) normalized = -normalized;
+
+        currentTiltSteer = Mathf.Lerp(currentTiltSteer, normalized, tiltSmoothing * Time.deltaTime);
+        return currentTiltSteer;
     }
 
     // ----------------------------
