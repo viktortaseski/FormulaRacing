@@ -108,7 +108,7 @@ public class VehicleStability : MonoBehaviour
             return;
 
         float force = Mathf.Min(airborneDownforce, maxAirborneDownforce);
-        rb.AddForce(-transform.up * force, ForceMode.Acceleration);
+        rb.AddForce(-Vector3.up * force, ForceMode.Acceleration);
     }
 
     private void ApplySideSlipDamping(float turningAssistMultiplier)

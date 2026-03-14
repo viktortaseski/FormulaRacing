@@ -4,7 +4,7 @@ public class AntiRollBar : MonoBehaviour
 {
     [SerializeField] private WheelCollider leftWheel;
     [SerializeField] private WheelCollider rightWheel;
-    [SerializeField] private float antiRollForce = 12000f;
+    [SerializeField] private float antiRollForce = 5000f;
 
     private Rigidbody rb;
 

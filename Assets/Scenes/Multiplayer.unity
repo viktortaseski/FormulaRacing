@@ -428,7 +428,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 8381351487994929199}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1860173071}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 93f392da7089d4ad9b4173f90612243a, type: 3}
   m_Name: 
@@ -1231,7 +1231,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1860173071}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5ca15971ba60b4cf390cc47d9f1d1cad, type: 3}
   m_Name: 
@@ -5461,7 +5461,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 926478759364170078, guid: f9860db3ec299441484a6721f71259cd, type: 3}
       propertyPath: Pan2D
-      value: -0.212
+      value: -0.3
       objectReference: {fileID: 0}
     - target: {fileID: 926478759364170078, guid: f9860db3ec299441484a6721f71259cd, type: 3}
       propertyPath: m_Pitch
@@ -5752,6 +5752,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5682477852472025390, guid: f9860db3ec299441484a6721f71259cd, type: 3}
+      propertyPath: Pan2D
+      value: -0.7
+      objectReference: {fileID: 0}
+    - target: {fileID: 5682477852472025390, guid: f9860db3ec299441484a6721f71259cd, type: 3}
       propertyPath: m_Pitch
       value: -0.13
       objectReference: {fileID: 0}
@@ -5785,7 +5789,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6111598913249388858, guid: f9860db3ec299441484a6721f71259cd, type: 3}
       propertyPath: m_Enabled
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6111598913249388858, guid: f9860db3ec299441484a6721f71259cd, type: 3}
       propertyPath: brakeForce
@@ -5917,7 +5921,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7345790865482130911, guid: f9860db3ec299441484a6721f71259cd, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 458
+      value: 293
       objectReference: {fileID: 0}
     - target: {fileID: 7388626092156485409, guid: f9860db3ec299441484a6721f71259cd, type: 3}
       propertyPath: m_Enabled
