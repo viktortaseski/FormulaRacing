@@ -11,9 +11,9 @@ public class VehicleStability : MonoBehaviour
 
     [Header("Downforce")]
     [SerializeField] private bool enableDownforce = true;
-    [SerializeField] private float downforceCoefficient = 0.02f;
-    [SerializeField] private float maxDownforce = 2500f;
-    [SerializeField] private float minDownforceSpeedKph = 30f;
+    [SerializeField] private float downforceCoefficient = 0.035f;
+    [SerializeField] private float maxDownforce = 3500f;
+    [SerializeField] private float minDownforceSpeedKph = 20f;
     [SerializeField] private float downforceMultiplier = 1f;
 
     [Header("Airborne Stabilizer")]
@@ -25,19 +25,19 @@ public class VehicleStability : MonoBehaviour
 
     [Header("Stability Assist")]
     [SerializeField] private bool enableSideSlipDamping = true;
-    [SerializeField] private float sideSlipDamping = 2.2f;
-    [SerializeField] private float maxSideSlipAcceleration = 8f;
-    [SerializeField] private float sideSlipMinSpeedKph = 60f;
+    [SerializeField] private float sideSlipDamping = 5.5f;
+    [SerializeField] private float maxSideSlipAcceleration = 22f;
+    [SerializeField] private float sideSlipMinSpeedKph = 15f;
     [SerializeField] private bool enableYawStability = true;
-    [SerializeField] private float yawStability = 2f;
-    [SerializeField] private float yawMinSpeedKph = 60f;
+    [SerializeField] private float yawStability = 5.0f;
+    [SerializeField] private float yawMinSpeedKph = 15f;
 
     [Header("Rear Traction Assist")]
     [Tooltip("Applies a lateral corrective force at the rear axle to prevent the back from sliding out.")]
     [SerializeField] private bool enableRearTractionAssist = true;
-    [SerializeField] private float rearTractionDamping = 3f;
-    [SerializeField] private float maxRearTractionAcceleration = 10f;
-    [SerializeField] private float rearTractionMinSpeedKph = 30f;
+    [SerializeField] private float rearTractionDamping = 7.0f;
+    [SerializeField] private float maxRearTractionAcceleration = 28f;
+    [SerializeField] private float rearTractionMinSpeedKph = 10f;
 
     [Header("Brake Assist Turning")]
     [SerializeField] private bool useBrakeAssistTurningDropdown = true;
@@ -46,7 +46,7 @@ public class VehicleStability : MonoBehaviour
     [SerializeField][Range(0f, 1f)] private float turningAssistMediumMultiplier = 0.7f;
     [SerializeField][Range(0f, 1f)] private float turningAssistHighMultiplier = 1f;
     [SerializeField] private bool scaleWheelFrictionWithTurningAssist = true;
-    [SerializeField][Range(0.2f, 1f)] private float offSidewaysFrictionStiffnessMultiplier = 0.6f;
+    [SerializeField][Range(0.2f, 1f)] private float offSidewaysFrictionStiffnessMultiplier = 0.9f;
 
     private WheelCollider[] assistWheels = new WheelCollider[0];
     private float[] baseSidewaysStiffness = new float[0];
