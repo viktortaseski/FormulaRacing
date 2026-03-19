@@ -9,6 +9,10 @@ public class StartSemaphore : MonoBehaviour
     [SerializeField] private float lightIntervalSeconds = 0.6f;
     [SerializeField] private float allLitHoldSeconds = 0.4f;
 
+    [Header("Audio")]
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioClip lightOnClip;
+
     [Header("Visibility")]
     [SerializeField] private GameObject rootToHide;
     [SerializeField] private bool autoStart = true;
@@ -55,6 +59,9 @@ public class StartSemaphore : MonoBehaviour
         {
             if (lights[i] != null)
                 lights[i].enabled = true;
+
+            if (audioSource != null && lightOnClip != null)
+                audioSource.PlayOneShot(lightOnClip);
 
             yield return new WaitForSeconds(lightIntervalSeconds);
         }
