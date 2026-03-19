@@ -6,13 +6,11 @@ using TMPro;
 public class SpeedDisplay : MonoBehaviour
 {
     [Header("Target")]
-    public Rigidbody targetRigidbody;   // car rigidbody
-
+    [SerializeField] private Rigidbody targetRigidbody;
     [Header("UI")]
-    public TMP_Text speedText;              // UI Text on Canvas
-
+    [SerializeField] private TMP_Text speedText;              // UI Text on Canvas
     [Header("Settings")]
-    public bool showInKPH = true;       // toggle km/h vs m/s
+    [SerializeField] private bool showInKPH = true;       // toggle km/h vs m/s
 
     private Vector3 _lastPosition;
     private bool _hasLastPosition = false;
@@ -39,10 +37,7 @@ public class SpeedDisplay : MonoBehaviour
             return;
         }
 
-        Vector3 delta = targetRigidbody.position - _lastPosition;
-        float frameSpeed = delta.magnitude / Mathf.Max(Time.fixedDeltaTime, 0.0001f);
-        _currentSpeedMS = frameSpeed;
-        _lastPosition = targetRigidbody.position;
+        calculateSpeed();
     }
 
     private void Update()
@@ -57,5 +52,13 @@ public class SpeedDisplay : MonoBehaviour
         string unit = showInKPH ? "km/h" : "m/s";
 
         speedText.text = $"{speed:0} {unit}";
+    }
+
+    private void calculateSpeed()
+    {
+        Vector3 delta = targetRigidbody.position - _lastPosition;
+        float frameSpeed = delta.magnitude / Mathf.Max(Time.fixedDeltaTime, 0.0001f);
+        _currentSpeedMS = frameSpeed;
+        _lastPosition = targetRigidbody.position;
     }
 }

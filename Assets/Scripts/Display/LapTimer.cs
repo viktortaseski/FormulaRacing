@@ -6,19 +6,19 @@ using UnityEngine.UI;
 public class LapTimer : MonoBehaviour
 {
     [Header("References")]
-    public Rigidbody carRigidbody;
+    [SerializeField] private Rigidbody carRigidbody;
 
     [Header("UI")]
-    public TMP_Text lapTimeText;
-    public TMP_Text sector1Text;
-    public TMP_Text sector2Text;
-    public TMP_Text sector3Text;
-    public TMP_Text lapListText;
+    [SerializeField] private TMP_Text lapTimeText;
+    [SerializeField] private TMP_Text sector1Text;
+    [SerializeField] private TMP_Text sector2Text;
+    [SerializeField] private TMP_Text sector3Text;
+    [SerializeField] private TMP_Text lapListText;
 
     [Header("End Race")]
-    public GameObject endRacePanel;
-    public TMP_Text endRaceLapTimesText;
-    public PauseMenuController endRacePauseController;
+    [SerializeField] private GameObject endRacePanel;
+    [SerializeField] private TMP_Text endRaceLapTimesText;
+    [SerializeField] private PauseMenuController endRacePauseController;
     private const int totalLaps = 3;
 
     // Timing
@@ -33,14 +33,14 @@ public class LapTimer : MonoBehaviour
     private float bestSector3Time = Mathf.Infinity;
 
     [Header("Sector Backgrounds")]
-    public Image sector1Background;
-    public Image sector2Background;
-    public Image sector3Background;
+    [SerializeField] private Image sector1Background;
+    [SerializeField] private Image sector2Background;
+    [SerializeField] private Image sector3Background;
 
     [Header("Colors")]
-    public Color fastestColor = Color.green;
-    public Color slowerColor = Color.yellow;
-    public Color defaultColor = new Color(0, 0, 0, 0f);
+    [SerializeField] private Color fastestColor = Color.green;
+    [SerializeField] private Color slowerColor = Color.yellow;
+    [SerializeField] private Color defaultColor = new Color(0, 0, 0, 0f);
 
     private void ResetTimersUI()
     {
