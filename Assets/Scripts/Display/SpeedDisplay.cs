@@ -1,6 +1,4 @@
 using UnityEngine;
-using UnityEngine.InputSystem;
-using UnityEngine.EventSystems;
 using TMPro;
 
 public class SpeedDisplay : MonoBehaviour

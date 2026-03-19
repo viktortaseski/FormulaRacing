@@ -106,12 +106,6 @@ public class MobileCarControls : MonoBehaviour
         MaintainReferences();
     }
 
-    // short tap on brake button = quick brake pulse (Implement later?)
-    private void OnBrakeTap()
-    {
-
-    }
-
     private float ReadMoveInput()
     {
         float move = 0f;
@@ -203,7 +197,6 @@ public class MobileCarControls : MonoBehaviour
         if (brakeButton == null)
             return;
 
-        brakeButton.onClick.AddListener(OnBrakeTap);
     }
 
     private void MaintainReferences()

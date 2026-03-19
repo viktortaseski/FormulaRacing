@@ -53,8 +53,8 @@ public class LapTimer : MonoBehaviour
     private void ResetSectorBackgrounds()
     {
         if (sector1Background != null) sector1Background.color = defaultColor;
-        if (sector1Background != null) sector2Background.color = defaultColor;
-        if (sector1Background != null) sector3Background.color = defaultColor;
+        if (sector2Background != null) sector2Background.color = defaultColor;
+        if (sector3Background != null) sector3Background.color = defaultColor;
     }
 
     private void Start()
