@@ -53,13 +53,14 @@ public class SimpleCarController : MonoBehaviour
     [Tooltip("Low-speed steering boost fades out by this speed (kph).")]
     [SerializeField] private float lowSpeedSteerBoostEndKph = 45f;
     [SerializeField] private bool smoothSteering = true;
-    [Header("Steering Speed Bands")]
+
+    [Header("Steering Speed Bands")]    // They control how the car steers at different speeds.
     [Tooltip("Band 1 / Band 2 threshold (kph). Below this uses band 1 values.")]
     [SerializeField] private float steerBandThreshold1 = 70f;
     [Tooltip("Band 2 / Band 3 threshold (kph). Above this uses band 3 values.")]
     [SerializeField] private float steerBandThreshold2 = 120f;
     [Tooltip("Input/return steer speed below " + nameof(steerBandThreshold1) + " kph.")]
-    [SerializeField] private float steerInputSpeedBand1 = 8f;
+    [SerializeField] private float steerInputSpeedBand1 = 30f;
     [SerializeField] private float steerReturnSpeedBand1 = 10f;
     [Tooltip("Input/return steer speed between band 1 and band 2.")]
     [SerializeField] private float steerInputSpeedBand2 = 5f;
@@ -67,6 +68,7 @@ public class SimpleCarController : MonoBehaviour
     [Tooltip("Input/return steer speed above " + nameof(steerBandThreshold2) + " kph.")]
     [SerializeField] private float steerInputSpeedBand3 = 2f;
     [SerializeField] private float steerReturnSpeedBand3 = 3f;
+
     [SerializeField]
     private AnimationCurve steerSensitivityBySpeed = new AnimationCurve(
         new Keyframe(0f, 1f),
