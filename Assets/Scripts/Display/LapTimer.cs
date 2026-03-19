@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using TMPro;
 using UnityEngine.UI;
 
@@ -13,6 +14,12 @@ public class LapTimer : MonoBehaviour
     public TMP_Text sector2Text;
     public TMP_Text sector3Text;
     public TMP_Text lapListText;
+
+    [Header("End Race")]
+    public GameObject endRacePanel;
+    public TMP_Text endRaceLapTimesText;
+    public PauseMenuController endRacePauseController;
+    private const int totalLaps = 3;
 
     // Timing
     private bool lapRunning = false;
@@ -133,6 +140,12 @@ public class LapTimer : MonoBehaviour
                     lapListText.text += "\n" + line;
             }
 
+            if (lapNumber >= totalLaps)
+            {
+                ShowEndRacePanel();
+                return;
+            }
+
             // Immediately start new lap
             lapStartTime = Time.time;
             currentSectorStartTime = Time.time;
@@ -153,7 +166,7 @@ public class LapTimer : MonoBehaviour
             if (sector1Text != null)
                 sector1Text.text = FormatTime(sectorTime);
 
-            // ✅ ADD THIS INSIDE HERE (Sector 1 color)
+            // (Sector 1 color)
             if (sector1Background != null)
             {
                 if (sectorTime < bestSector1Time)
@@ -175,7 +188,7 @@ public class LapTimer : MonoBehaviour
             if (sector2Text != null)
                 sector2Text.text = FormatTime(sectorTime);
 
-            // ✅ ADD THIS INSIDE HERE (Sector 2 color)
+            // (Sector 2 color)
             if (sector2Background != null)
             {
                 if (sectorTime < bestSector2Time)
@@ -196,6 +209,35 @@ public class LapTimer : MonoBehaviour
     }
 
 
+
+    private void ShowEndRacePanel()
+    {
+        lapRunning = false;
+
+        if (endRaceLapTimesText != null && lapListText != null)
+            endRaceLapTimesText.text = lapListText.text;
+
+        if (endRacePauseController != null)
+            endRacePauseController.OpenMenu();
+        else if (endRacePanel != null)
+            endRacePanel.SetActive(true);
+    }
+
+    // Assign to Retry button's OnClick in the Inspector
+    public void OnRetry()
+    {
+        if (endRacePauseController != null)
+            endRacePauseController.CloseMenu();
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+    }
+
+    // Assign to Continue button's OnClick in the Inspector
+    public void OnContinue()
+    {
+        if (endRacePauseController != null)
+            endRacePauseController.CloseMenu();
+        SceneManager.LoadScene("MainMenu");
+    }
 
     private string FormatTime(float t)
     {
