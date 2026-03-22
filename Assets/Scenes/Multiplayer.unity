@@ -1086,6 +1086,8 @@ GameObject:
   m_Component:
   - component: {fileID: 637342894}
   - component: {fileID: 637342895}
+  - component: {fileID: 637342897}
+  - component: {fileID: 637342896}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -1124,6 +1126,37 @@ MonoBehaviour:
   monzaRoot: {fileID: 2751722204963171462}
   singaporeRoot: {fileID: 919132149120996601}
   autoFindByNameIfMissing: 1
+--- !u!114 &637342896
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 637342893}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f07dcffc88d864d1f8fbddbcef600e61, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RestartManager
+  enableKeyboardInput: 1
+  restartKey: 114
+  mainMenuSceneName: MainMenu
+  settingsSceneName: Settings
+--- !u!114 &637342897
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 637342893}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b2f60d1a49274a439d8e5bf1f80f825, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PauseMenuController
+  menuPanel: {fileID: 923458450}
+  startPaused: 0
+  pauseTime: 1
 --- !u!1 &691921875 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 7761079566038227943, guid: d585abdcd6d454f19aba1d70aaf43af6, type: 3}
@@ -1214,7 +1247,7 @@ MonoBehaviour:
   m_text: Lap Times
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8a89fa14b10d46a99122fd4f73fca9a2, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_sharedMaterial: {fileID: 2140474, guid: 8a89fa14b10d46a99122fd4f73fca9a2, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -1279,7 +1312,7 @@ MonoBehaviour:
   m_margin: {x: -827.77344, y: -379.9375, z: -878.4292, w: -345.375}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
-  m_hasFontAssetChanged: 1
+  m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
 --- !u!222 &763269052
@@ -1636,14 +1669,13 @@ GameObject:
   - component: {fileID: 923458451}
   - component: {fileID: 923458453}
   - component: {fileID: 923458452}
-  - component: {fileID: 923458454}
   m_Layer: 5
   m_Name: endRacePanel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &923458451
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1704,21 +1736,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 923458450}
   m_CullTransparentMesh: 1
---- !u!114 &923458454
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 923458450}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9b2f60d1a49274a439d8e5bf1f80f825, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PauseMenuController
-  menuPanel: {fileID: 8203277725797071069}
-  startPaused: 0
-  pauseTime: 1
 --- !u!1 &991642881 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 1903563193404422327, guid: d585abdcd6d454f19aba1d70aaf43af6, type: 3}
@@ -2356,6 +2373,17 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: -8634060567236447461, guid: 94c9e0dd85e484bbd966cb651e58d397, type: 3}
+--- !u!114 &1497495600 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4479663493450981585, guid: d585abdcd6d454f19aba1d70aaf43af6, type: 3}
+  m_PrefabInstance: {fileID: 618764675956813498}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b85011c5de5c54824a2834064e9f5199, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FormulaAudio
 --- !u!1 &1654095374
 GameObject:
   m_ObjectHideFlags: 0
@@ -2652,9 +2680,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: LapTimer, Assembly-CSharp
-        m_MethodName: OnContinue
+      - m_Target: {fileID: 637342896}
+        m_TargetAssemblyTypeName: RestartManager, Assembly-CSharp
+        m_MethodName: LoadMainMenu
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -2903,9 +2931,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: LapTimer, Assembly-CSharp
-        m_MethodName: OnRetry
+      - m_Target: {fileID: 637342896}
+        m_TargetAssemblyTypeName: RestartManager, Assembly-CSharp
+        m_MethodName: RestartScene
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -3039,7 +3067,9 @@ MonoBehaviour:
   lapListText: {fileID: 6506285531185427541}
   endRacePanel: {fileID: 923458450}
   endRaceLapTimesText: {fileID: 763269051}
-  endRacePauseController: {fileID: 923458454}
+  endRacePauseController: {fileID: 0}
+  totalLaps: 1
+  formulaAudio: {fileID: 1497495600}
   sector1Background: {fileID: 8742309965070119576}
   sector2Background: {fileID: 3915983793335789255}
   sector3Background: {fileID: 3583051674978736829}
@@ -7033,6 +7063,8 @@ MonoBehaviour:
   turningAssistHighMultiplier: 1
   scaleWheelFrictionWithTurningAssist: 1
   offSidewaysFrictionStiffnessMultiplier: 0.6
+  frontSidewaysStiffness: 0
+  rearSidewaysStiffness: 0
 --- !u!1 &2778736787141883156
 GameObject:
   m_ObjectHideFlags: 0

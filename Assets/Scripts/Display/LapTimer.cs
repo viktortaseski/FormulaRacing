@@ -19,7 +19,8 @@ public class LapTimer : MonoBehaviour
     [SerializeField] private GameObject endRacePanel;
     [SerializeField] private TMP_Text endRaceLapTimesText;
     [SerializeField] private PauseMenuController endRacePauseController;
-    private const int totalLaps = 3;
+    [SerializeField] private int totalLaps = 3;
+    [SerializeField] private FormulaAudio formulaAudio;
 
     // Timing
     private bool lapRunning = false;
@@ -214,6 +215,9 @@ public class LapTimer : MonoBehaviour
     {
         lapRunning = false;
 
+        if (formulaAudio != null)
+            formulaAudio.StopEngine();
+
         if (endRaceLapTimesText != null && lapListText != null)
             endRaceLapTimesText.text = lapListText.text;
 
@@ -221,22 +225,6 @@ public class LapTimer : MonoBehaviour
             endRacePauseController.OpenMenu();
         else if (endRacePanel != null)
             endRacePanel.SetActive(true);
-    }
-
-    // Assign to Retry button's OnClick in the Inspector
-    public void OnRetry()
-    {
-        if (endRacePauseController != null)
-            endRacePauseController.CloseMenu();
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
-    }
-
-    // Assign to Continue button's OnClick in the Inspector
-    public void OnContinue()
-    {
-        if (endRacePauseController != null)
-            endRacePauseController.CloseMenu();
-        SceneManager.LoadScene("MainMenu");
     }
 
     private string FormatTime(float t)

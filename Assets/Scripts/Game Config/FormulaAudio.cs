@@ -98,6 +98,13 @@ public class FormulaAudio : MonoBehaviour
         return SceneManager.GetActiveScene().name == settingsSceneName;
     }
 
+    public void StopEngine()
+    {
+        PauseSource(engineIdleSource);
+        PauseSource(engineAccelSource);
+        PauseSource(gearShiftSource);
+    }
+
     private void PauseSource(AudioSource source)
     {
         if (source != null && source.isPlaying)
