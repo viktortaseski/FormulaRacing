@@ -7063,8 +7063,8 @@ MonoBehaviour:
   turningAssistHighMultiplier: 1
   scaleWheelFrictionWithTurningAssist: 1
   offSidewaysFrictionStiffnessMultiplier: 0.6
-  frontSidewaysStiffness: 0
-  rearSidewaysStiffness: 0
+  frontSidewaysStiffness: 4
+  rearSidewaysStiffness: 4
 --- !u!1 &2778736787141883156
 GameObject:
   m_ObjectHideFlags: 0

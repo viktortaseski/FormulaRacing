@@ -4037,6 +4037,8 @@ MonoBehaviour:
   - {fileID: 2525388579388503108}
   lightIntervalSeconds: 1
   allLitHoldSeconds: 0.4
+  audioSource: {fileID: 0}
+  lightOnClip: {fileID: 0}
   rootToHide: {fileID: 9134024685158234536}
   autoStart: 1
   disableWhileCounting:
@@ -4684,6 +4686,10 @@ MonoBehaviour:
   enableYawStability: 1
   yawStability: 2
   yawMinSpeedKph: 60
+  enableRearTractionAssist: 1
+  rearTractionDamping: 7
+  maxRearTractionAcceleration: 28
+  rearTractionMinSpeedKph: 10
   useBrakeAssistTurningDropdown: 1
   turningAssistOffMultiplier: 0
   turningAssistLowMultiplier: 0.4
@@ -4691,6 +4697,8 @@ MonoBehaviour:
   turningAssistHighMultiplier: 1
   scaleWheelFrictionWithTurningAssist: 1
   offSidewaysFrictionStiffnessMultiplier: 0.6
+  frontSidewaysStiffness: 0
+  rearSidewaysStiffness: 0
 --- !u!146 &1155419879508146388 stripped
 WheelCollider:
   m_CorrespondingSourceObject: {fileID: 7840241068390479425, guid: d585abdcd6d454f19aba1d70aaf43af6, type: 3}
