@@ -7,31 +7,13 @@ public class GarageMenu : MonoBehaviour
     [SerializeField] private GameObject garagePanel;
 
 
-    public void Open()
+    public void Open() => SetVisible(true);
+    public void Close() => SetVisible(false);
+
+    private void SetVisible(bool open)
     {
-        if (mainMenuPanel != null)
-        {
-            mainMenuPanel.SetActive(false);
-        }
-
-        if (garagePanel != null)
-        {
-            garagePanel.SetActive(true);
-        }
-
-    }
-
-    public void Close()
-    {
-        if (garagePanel != null)
-        {
-            garagePanel.SetActive(false);
-        }
-
-        if (mainMenuPanel != null)
-        {
-            mainMenuPanel.SetActive(true);
-        }
+        if (mainMenuPanel != null) mainMenuPanel.SetActive(!open);
+        if (garagePanel != null) garagePanel.SetActive(open);
     }
 
 }

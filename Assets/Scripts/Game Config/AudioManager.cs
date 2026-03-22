@@ -15,18 +15,7 @@ public class AudioManager : MonoBehaviour
 
     private void Awake()
     {
-        if (instance != null && instance != this)
-        {
-            Destroy(gameObject);
-            return;
-        }
-
-        if (transform.parent != null)
-            transform.SetParent(null, true);
-
-        instance = this;
-        DontDestroyOnLoad(gameObject);
-
+        if (!InitSingleton()) return;
         CacheSources();
         ApplyMusicEnabled(GetMusicEnabled(defaultMusicEnabled));
     }
@@ -35,6 +24,22 @@ public class AudioManager : MonoBehaviour
     {
         if (themeSong != null && !themeSong.isPlaying && GetMusicEnabled(defaultMusicEnabled))
             themeSong.Play();
+    }
+
+    private bool InitSingleton()
+    {
+        if (instance != null && instance != this)
+        {
+            Destroy(gameObject);
+            return false;
+        }
+
+        if (transform.parent != null)
+            transform.SetParent(null, true);
+
+        instance = this;
+        DontDestroyOnLoad(gameObject);
+        return true;
     }
 
     private void OnEnable()
@@ -87,27 +92,13 @@ public class AudioManager : MonoBehaviour
 
     private void ApplyMusicEnabled(bool enabled)
     {
-        if (musicSources == null || musicSources.Length == 0)
-            return;
-
-        for (int i = 0; i < musicSources.Length; i++)
+        if (musicSources == null || musicSources.Length == 0) return;
+        foreach (var source in musicSources)
         {
-            var source = musicSources[i];
-            if (source == null)
-                continue;
-
+            if (source == null) continue;
             source.mute = !enabled;
-
-            if (enabled)
-            {
-                if (!source.isPlaying)
-                    source.Play();
-            }
-            else
-            {
-                if (source.isPlaying)
-                    source.Pause();
-            }
+            if (enabled && !source.isPlaying) source.Play();
+            else if (!enabled && source.isPlaying) source.Pause();
         }
     }
 }

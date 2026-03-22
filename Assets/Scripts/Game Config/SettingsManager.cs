@@ -12,13 +12,7 @@ public class SettingsManager : MonoBehaviour
     public const float SteeringSensitivityMinMultiplier = 0.3f;
     public const float SteeringSensitivityMaxMultiplier = 1f;
 
-    private enum AssistLevel
-    {
-        Off = 0,
-        Low = 1,
-        Medium = 2,
-        High = 3
-    }
+    private enum AssistLevel { Off = 0, Low = 1, Medium = 2, High = 3 }
 
     [Header("UI")]
     [SerializeField] private Slider steeringSensitivitySlider;
@@ -39,26 +33,17 @@ public class SettingsManager : MonoBehaviour
         EnsureAssistOptions();
         LoadToUI();
         HookUIEvents();
-        ApplyAll();
+        AudioManager.SetMusicEnabled(AudioManager.GetMusicEnabled(defaultMusicEnabled));
     }
 
-    private void OnEnable()
-    {
-        HookUIEvents();
-    }
-
-    private void OnDisable()
-    {
-        UnhookUIEvents();
-    }
+    private void OnEnable() => HookUIEvents();
+    private void OnDisable() => UnhookUIEvents();
 
     private void EnsureAssistOptions()
     {
         string[] labels = { "Off", "Low", "Medium", "High" };
-
         if (brakeAssistDropdownTmp != null && brakeAssistDropdownTmp.options.Count == 0)
             AddOptions(brakeAssistDropdownTmp, labels);
-
         if (stabilityAssistDropdownTmp != null && stabilityAssistDropdownTmp.options.Count == 0)
             AddOptions(stabilityAssistDropdownTmp, labels);
     }
@@ -66,75 +51,36 @@ public class SettingsManager : MonoBehaviour
     private void AddOptions(TMP_Dropdown dropdown, string[] labels)
     {
         dropdown.options.Clear();
-        for (int i = 0; i < labels.Length; i++)
-            dropdown.options.Add(new TMP_Dropdown.OptionData(labels[i]));
+        foreach (var label in labels)
+            dropdown.options.Add(new TMP_Dropdown.OptionData(label));
     }
 
     private void HookUIEvents()
     {
-        if (listenersHooked)
-            return;
-
-        if (steeringSensitivitySlider != null)
-            steeringSensitivitySlider.onValueChanged.AddListener(OnSteeringSensitivityChanged);
-
-        if (musicToggle != null)
-            musicToggle.onValueChanged.AddListener(OnMusicToggled);
-
-        if (brakeAssistDropdownTmp != null)
-            brakeAssistDropdownTmp.onValueChanged.AddListener(OnBrakeAssistChanged);
-
-        if (stabilityAssistDropdownTmp != null)
-            stabilityAssistDropdownTmp.onValueChanged.AddListener(OnStabilityAssistChanged);
-
+        if (listenersHooked) return;
+        steeringSensitivitySlider?.onValueChanged.AddListener(OnSteeringSensitivityChanged);
+        musicToggle?.onValueChanged.AddListener(OnMusicToggled);
+        brakeAssistDropdownTmp?.onValueChanged.AddListener(OnBrakeAssistChanged);
+        stabilityAssistDropdownTmp?.onValueChanged.AddListener(OnStabilityAssistChanged);
         listenersHooked = true;
     }
 
     private void UnhookUIEvents()
     {
-        if (!listenersHooked)
-            return;
-
-        if (steeringSensitivitySlider != null)
-            steeringSensitivitySlider.onValueChanged.RemoveListener(OnSteeringSensitivityChanged);
-
-        if (musicToggle != null)
-            musicToggle.onValueChanged.RemoveListener(OnMusicToggled);
-
-        if (brakeAssistDropdownTmp != null)
-            brakeAssistDropdownTmp.onValueChanged.RemoveListener(OnBrakeAssistChanged);
-
-        if (stabilityAssistDropdownTmp != null)
-            stabilityAssistDropdownTmp.onValueChanged.RemoveListener(OnStabilityAssistChanged);
-
+        if (!listenersHooked) return;
+        steeringSensitivitySlider?.onValueChanged.RemoveListener(OnSteeringSensitivityChanged);
+        musicToggle?.onValueChanged.RemoveListener(OnMusicToggled);
+        brakeAssistDropdownTmp?.onValueChanged.RemoveListener(OnBrakeAssistChanged);
+        stabilityAssistDropdownTmp?.onValueChanged.RemoveListener(OnStabilityAssistChanged);
         listenersHooked = false;
     }
 
     private void LoadToUI()
     {
-        float steeringRaw = PlayerPrefs.GetFloat(SteeringSensitivityKey, defaultSteeringSensitivity);
-        float steering = NormalizeSteeringSensitivity(steeringRaw);
-        bool musicOn = PlayerPrefs.GetInt(MusicEnabledKey, defaultMusicEnabled ? 1 : 0) == 1;
-        int brakeAssist = Mathf.Clamp(PlayerPrefs.GetInt(BrakeAssistKey, (int)defaultBrakeAssist), 0, 3);
-        int stabilityAssist = Mathf.Clamp(PlayerPrefs.GetInt(StabilityAssistKey, (int)defaultStabilityAssist), 0, 3);
-
-        if (steeringSensitivitySlider != null)
-            steeringSensitivitySlider.SetValueWithoutNotify(steering);
-
-        if (musicToggle != null)
-            musicToggle.SetIsOnWithoutNotify(musicOn);
-
-        if (brakeAssistDropdownTmp != null)
-            brakeAssistDropdownTmp.SetValueWithoutNotify(brakeAssist);
-
-        if (stabilityAssistDropdownTmp != null)
-            stabilityAssistDropdownTmp.SetValueWithoutNotify(stabilityAssist);
-
-    }
-
-    private void ApplyAll()
-    {
-        ApplyMusicState(GetMusicEnabled());
+        steeringSensitivitySlider?.SetValueWithoutNotify(GetSteeringSensitivityNormalized(defaultSteeringSensitivity));
+        musicToggle?.SetIsOnWithoutNotify(AudioManager.GetMusicEnabled(defaultMusicEnabled));
+        brakeAssistDropdownTmp?.SetValueWithoutNotify(Mathf.Clamp(PlayerPrefs.GetInt(BrakeAssistKey, (int)defaultBrakeAssist), 0, 3));
+        stabilityAssistDropdownTmp?.SetValueWithoutNotify(Mathf.Clamp(PlayerPrefs.GetInt(StabilityAssistKey, (int)defaultStabilityAssist), 0, 3));
     }
 
     private void OnSteeringSensitivityChanged(float value)
@@ -143,95 +89,43 @@ public class SettingsManager : MonoBehaviour
         PlayerPrefs.Save();
     }
 
-    private void OnMusicToggled(bool isOn)
-    {
-        ApplyMusicState(isOn);
-    }
+    private void OnMusicToggled(bool isOn) => AudioManager.SetMusicEnabled(isOn);
 
-    private void OnBrakeAssistChanged(int index)
+    private void OnBrakeAssistChanged(int index) => SaveAssist(BrakeAssistKey, index);
+    private void OnStabilityAssistChanged(int index) => SaveAssist(StabilityAssistKey, index);
+
+    private void SaveAssist(string key, int index)
     {
-        int level = Mathf.Clamp(index, 0, 3);
-        PlayerPrefs.SetInt(BrakeAssistKey, level);
+        PlayerPrefs.SetInt(key, Mathf.Clamp(index, 0, 3));
         PlayerPrefs.Save();
-    }
-
-    private void OnStabilityAssistChanged(int index)
-    {
-        int level = Mathf.Clamp(index, 0, 3);
-        PlayerPrefs.SetInt(StabilityAssistKey, level);
-        PlayerPrefs.Save();
-    }
-
-
-    private bool GetMusicEnabled()
-    {
-        return PlayerPrefs.GetInt(MusicEnabledKey, defaultMusicEnabled ? 1 : 0) == 1;
-    }
-
-    private void ApplyMusicState(bool enabled)
-    {
-        AudioManager.SetMusicEnabled(enabled);
-    }
-
-    private float NormalizeSteeringSensitivity(float rawValue)
-    {
-        if (rawValue < 0f || rawValue > 1f)
-        {
-            float t = Mathf.InverseLerp(SteeringSensitivityMinMultiplier, SteeringSensitivityMaxMultiplier, rawValue);
-            return Mathf.Clamp01(t);
-        }
-
-        return Mathf.Clamp01(rawValue);
     }
 
     public static float GetSteeringSensitivityNormalized(float fallback = DefaultSteerSensitivityNormalized)
     {
         float raw = PlayerPrefs.GetFloat(SteeringSensitivityKey, fallback);
         if (raw < 0f || raw > 1f)
-        {
-            float t = Mathf.InverseLerp(SteeringSensitivityMinMultiplier, SteeringSensitivityMaxMultiplier, raw);
-            return Mathf.Clamp01(t);
-        }
-
+            return Mathf.Clamp01(Mathf.InverseLerp(SteeringSensitivityMinMultiplier, SteeringSensitivityMaxMultiplier, raw));
         return Mathf.Clamp01(raw);
     }
 
     public static float GetSteeringSensitivityMultiplier(float fallback = DefaultSteerSensitivityNormalized)
-    {
-        float t = GetSteeringSensitivityNormalized(fallback);
-        return Mathf.Lerp(SteeringSensitivityMinMultiplier, SteeringSensitivityMaxMultiplier, t);
-    }
+        => Mathf.Lerp(SteeringSensitivityMinMultiplier, SteeringSensitivityMaxMultiplier, GetSteeringSensitivityNormalized(fallback));
 
     public static int GetBrakeAssistLevelIndex(int fallback = (int)AssistLevel.High)
-    {
-        int safeFallback = Mathf.Clamp(fallback, 0, 3);
-        return Mathf.Clamp(PlayerPrefs.GetInt(BrakeAssistKey, safeFallback), 0, 3);
-    }
+        => Mathf.Clamp(PlayerPrefs.GetInt(BrakeAssistKey, Mathf.Clamp(fallback, 0, 3)), 0, 3);
 
     public static float GetBrakeAssistTurningMultiplier(int fallback = (int)AssistLevel.High)
     {
-        switch (GetTurningAssistLevelIndex(fallback))
-        {
-            case (int)AssistLevel.Off:
-                return 0f;
-            case (int)AssistLevel.Low:
-                return 0.4f;
-            case (int)AssistLevel.Medium:
-                return 0.7f;
-            case (int)AssistLevel.High:
-            default:
-                return 1f;
-        }
+        float[] multipliers = { 0f, 0.4f, 0.7f, 1f };
+        return multipliers[GetTurningAssistLevelIndex(fallback)];
     }
 
     public static int GetTurningAssistLevelIndex(int fallback = (int)AssistLevel.High)
     {
-        int safeFallback = Mathf.Clamp(fallback, 0, 3);
-        int brakeLevel = Mathf.Clamp(PlayerPrefs.GetInt(BrakeAssistKey, safeFallback), 0, 3);
-        int stabilityLevel = Mathf.Clamp(PlayerPrefs.GetInt(StabilityAssistKey, safeFallback), 0, 3);
-
-        // Support either dropdown being used for turning assist: lower level wins.
-        return Mathf.Min(brakeLevel, stabilityLevel);
+        int safe = Mathf.Clamp(fallback, 0, 3);
+        return Mathf.Min(
+            Mathf.Clamp(PlayerPrefs.GetInt(BrakeAssistKey, safe), 0, 3),
+            Mathf.Clamp(PlayerPrefs.GetInt(StabilityAssistKey, safe), 0, 3)
+        );
     }
-
 }

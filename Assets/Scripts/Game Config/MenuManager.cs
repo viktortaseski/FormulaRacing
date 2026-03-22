@@ -13,22 +13,13 @@ public class MenuManager : MonoBehaviour
         OpenTrackSelection();
     }
 
-    public void OpenTrackSelection()
+    public void OpenTrackSelection() => SetTrackSelectionVisible(true);
+    public void BackFromTrackSelection() => SetTrackSelectionVisible(false);
+
+    private void SetTrackSelectionVisible(bool visible)
     {
-        if (mainMenuPanel != null)
-            mainMenuPanel.SetActive(false);
-
-        if (trackSelectionPanel != null)
-            trackSelectionPanel.SetActive(true);
-    }
-
-    public void BackFromTrackSelection()
-    {
-        if (trackSelectionPanel != null)
-            trackSelectionPanel.SetActive(false);
-
-        if (mainMenuPanel != null)
-            mainMenuPanel.SetActive(true);
+        if (mainMenuPanel != null) mainMenuPanel.SetActive(!visible);
+        if (trackSelectionPanel != null) trackSelectionPanel.SetActive(visible);
     }
 
     public void StartFreePracticeMonza()
