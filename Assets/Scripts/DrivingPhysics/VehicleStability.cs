@@ -47,6 +47,10 @@ public class VehicleStability : MonoBehaviour
     [SerializeField][Range(0f, 1f)] private float turningAssistHighMultiplier = 1f;
     [SerializeField] private bool scaleWheelFrictionWithTurningAssist = true;
     [SerializeField][Range(0.2f, 1f)] private float offSidewaysFrictionStiffnessMultiplier = 0.9f;
+    [Tooltip("Override sideways friction stiffness for front wheels (0 = read from WheelCollider).")]
+    [SerializeField] private float frontSidewaysStiffness = 0f;
+    [Tooltip("Override sideways friction stiffness for rear wheels (0 = read from WheelCollider).")]
+    [SerializeField] private float rearSidewaysStiffness = 0f;
 
     private WheelCollider[] assistWheels = new WheelCollider[0];
     private float[] baseSidewaysStiffness = new float[0];
@@ -220,7 +224,11 @@ public class VehicleStability : MonoBehaviour
         assistWheels = wheels.ToArray();
         baseSidewaysStiffness = new float[assistWheels.Length];
         for (int i = 0; i < assistWheels.Length; i++)
-            baseSidewaysStiffness[i] = assistWheels[i].sidewaysFriction.stiffness;
+        {
+            bool isFront = assistWheels[i] == frontLeftWheel || assistWheels[i] == frontRightWheel;
+            float overrideValue = isFront ? frontSidewaysStiffness : rearSidewaysStiffness;
+            baseSidewaysStiffness[i] = overrideValue > 0f ? overrideValue : assistWheels[i].sidewaysFriction.stiffness;
+        }
     }
 
     private void ApplyWheelFrictionAssist(float turningAssistMultiplier)
