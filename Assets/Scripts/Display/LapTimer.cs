@@ -63,6 +63,9 @@ public class LapTimer : MonoBehaviour
         if (carRigidbody == null)
             carRigidbody = GetComponent<Rigidbody>();
 
+        // Lap count is chosen in the MainMenu and persisted across scenes.
+        totalLaps = LapSelectionState.GetSelectedLaps();
+
         ResetTimersUI();
     }
 
