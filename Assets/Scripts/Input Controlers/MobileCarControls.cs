@@ -5,7 +5,7 @@ using UnityEngine.InputSystem;
 public class MobileCarControls : MonoBehaviour
 {
     [Header("References")]
-    [SerializeField] private SimpleCarController car;
+    [SerializeField] private CarPhysicsController car;
     [SerializeField] private Slider throttleSlider;
     [SerializeField] private Button brakeButton;
 
@@ -181,7 +181,7 @@ public class MobileCarControls : MonoBehaviour
     private void CacheCar()
     {
         if (car == null)
-            car = GetComponent<SimpleCarController>();
+            car = GetComponent<CarPhysicsController>();
     }
 
     private void CacheRigidbody()

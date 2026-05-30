@@ -10,9 +10,9 @@ public class DRScontroler : MonoBehaviour
     [Tooltip("The flap/wing mesh that visually opens/closes for DRS.")]
     public Transform drsFlap;
 
-    [Tooltip("Optional SimpleCarController handling the car physics.")]
+    [Tooltip("Optional PhysicsCarController handling the car physics.")]
     [FormerlySerializedAs("carPhysics")]
-    public SimpleCarController carController;
+    public CarPhysicsController carController;
 
     [Tooltip("Optional Rigidbody for drag control during DRS.")]
     public Rigidbody carRigidbody;
@@ -75,7 +75,7 @@ public class DRScontroler : MonoBehaviour
     private void Awake()
     {
         if (carController == null)
-            carController = GetComponentInParent<SimpleCarController>();
+            carController = GetComponentInParent<CarPhysicsController>();
 
         if (carRigidbody == null)
             carRigidbody = carController != null ? carController.Rigidbody : GetComponentInParent<Rigidbody>();

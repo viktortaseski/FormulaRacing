@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class SimpleCarController : MonoBehaviour
+public class CarPhysicsController : MonoBehaviour
 {
     // ===== Input =====
     private Vector2 driveInput;

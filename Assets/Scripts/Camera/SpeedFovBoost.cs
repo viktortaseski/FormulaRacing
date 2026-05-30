@@ -3,7 +3,7 @@ using UnityEngine;
 public class SpeedFovBoost : MonoBehaviour
 {
     [Header("References")]
-    [SerializeField] private SimpleCarController carController;
+    [SerializeField] private CarPhysicsController carController;
     [SerializeField] private Rigidbody targetRigidbody;
     [SerializeField] private Camera[] cameras;
 
@@ -33,7 +33,7 @@ public class SpeedFovBoost : MonoBehaviour
 
         if (targetRigidbody == null)
         {
-            var foundCar = FindFirstObjectByType<SimpleCarController>();
+            var foundCar = FindFirstObjectByType<CarPhysicsController>();
             if (foundCar != null)
                 targetRigidbody = foundCar.Rigidbody;
         }

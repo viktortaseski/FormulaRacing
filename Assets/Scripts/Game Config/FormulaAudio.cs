@@ -4,7 +4,7 @@ using UnityEngine.SceneManagement;
 public class FormulaAudio : MonoBehaviour
 {
     [Header("References")]
-    public SimpleCarController carController;
+    public CarPhysicsController carController;
     public Rigidbody carRigidbody;
     public AudioSource engineIdleSource;
     public AudioSource engineAccelSource;
