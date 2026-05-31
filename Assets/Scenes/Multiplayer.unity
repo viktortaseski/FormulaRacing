@@ -8265,7 +8265,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 0, y: 0.5}
-  m_AnchoredPosition: {x: -950, y: 300}
+  m_AnchoredPosition: {x: -950, y: 200}
   m_SizeDelta: {x: 200, y: 200}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!33 &4463961430634794775
@@ -8921,7 +8921,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 0, y: 0.5}
-  m_AnchoredPosition: {x: -950, y: -200}
+  m_AnchoredPosition: {x: -950, y: -300}
   m_SizeDelta: {x: 500, y: 600}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!4 &5188166201121743382
@@ -9799,7 +9799,6 @@ MonoBehaviour:
   lightOnClip: {fileID: 0}
   rootToHide: {fileID: 761699647640066439}
   autoStart: 1
-  disableWhileCounting: []
 --- !u!82 &6294574816894203857
 AudioSource:
   m_ObjectHideFlags: 0
@@ -12098,7 +12097,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: -1254, y: 521}
+  m_AnchoredPosition: {x: -1200, y: 475}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &8674818628524651470
