@@ -1780,6 +1780,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1005474501}
+  - component: {fileID: 1005474502}
   m_Layer: 0
   m_Name: Settings
   m_TagString: Untagged
@@ -1802,6 +1803,23 @@ Transform:
   m_Children: []
   m_Father: {fileID: 637342894}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1005474502
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1005474500}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a4fe8872f0f5a4bb7b4ab33374f2ff42, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::InputSourceController
+  inputSourceDropdown: {fileID: 0}
+  keyboardControls:
+  - {fileID: 1860173083}
+  mobileControls:
+  - {fileID: 1860173072}
 --- !u!1 &1036588006
 GameObject:
   m_ObjectHideFlags: 0
@@ -2991,14 +3009,13 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1860173071}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5ca15971ba60b4cf390cc47d9f1d1cad, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MobileCarControls
   car: {fileID: 566520046}
   throttleSlider: {fileID: 6850987511490472225}
-  brakeButton: {fileID: 3665000094590533681}
   throttleSensitivity: 1
   brakeStrength: 1
   tiltMaxG: 0.35
@@ -3029,17 +3046,6 @@ MonoBehaviour:
   maxUpwardVelocity: 2
   groundingForce: 25
   minSpeedKph: 20
---- !u!114 &1860173080 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 6021653916026519000, guid: d585abdcd6d454f19aba1d70aaf43af6, type: 3}
-  m_PrefabInstance: {fileID: 618764675956813498}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1860173071}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 62899f850307741f2a39c98a8b639597, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.PlayerInput
 --- !u!4 &1860173081 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6867847997932325652, guid: d585abdcd6d454f19aba1d70aaf43af6, type: 3}
@@ -3074,6 +3080,20 @@ MonoBehaviour:
   fastestColor: {r: 0, g: 1, b: 0, a: 1}
   slowerColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   defaultColor: {r: 0, g: 0, b: 0, a: 0}
+--- !u!114 &1860173083
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1860173071}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7013040c4e06440cbe8f4e936ec3224a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::KeyboardCarControls
+  car: {fileID: 566520046}
+  brakeStrength: 1
 --- !u!1 &2062121377
 GameObject:
   m_ObjectHideFlags: 0
@@ -4111,8 +4131,12 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 2754934558205483363}
     - target: {fileID: 2269705204888905125, guid: d585abdcd6d454f19aba1d70aaf43af6, type: 3}
+      propertyPath: drsCooldownSeconds
+      value: 20
+      objectReference: {fileID: 0}
+    - target: {fileID: 2269705204888905125, guid: d585abdcd6d454f19aba1d70aaf43af6, type: 3}
       propertyPath: speedLimitMultiplier
-      value: 1.14
+      value: 1.2
       objectReference: {fileID: 0}
     - target: {fileID: 2358471245360616631, guid: d585abdcd6d454f19aba1d70aaf43af6, type: 3}
       propertyPath: m_Enabled
@@ -4883,6 +4907,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 921304321169651137, guid: d585abdcd6d454f19aba1d70aaf43af6, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1860173082}
+    - targetCorrespondingSourceObject: {fileID: 921304321169651137, guid: d585abdcd6d454f19aba1d70aaf43af6, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1860173083}
     - targetCorrespondingSourceObject: {fileID: 8162662826108966095, guid: d585abdcd6d454f19aba1d70aaf43af6, type: 3}
       insertIndex: -1
       addedObject: {fileID: 2754934558205483363}
@@ -9772,8 +9799,7 @@ MonoBehaviour:
   lightOnClip: {fileID: 0}
   rootToHide: {fileID: 761699647640066439}
   autoStart: 1
-  disableWhileCounting:
-  - {fileID: 1860173080}
+  disableWhileCounting: []
 --- !u!82 &6294574816894203857
 AudioSource:
   m_ObjectHideFlags: 0

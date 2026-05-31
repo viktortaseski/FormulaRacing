@@ -1,14 +1,13 @@
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 public class CarPhysicsController : MonoBehaviour
 {
     // ===== Input =====
-    private Vector2 driveInput;
+    // Normalized inputs fed every frame by an input controller
+    // (KeyboardCarControls or MobileCarControls) via SetInputs().
     private float steerInput;
     private float throttleInput;
     private float brakeInput;
-    private bool useExternalInput;
 
     private Rigidbody rb;
 
@@ -28,7 +27,6 @@ public class CarPhysicsController : MonoBehaviour
     [SerializeField] private float idleBrakeFullKph = 45f;
     [SerializeField][Min(0.1f)] private float idleBrakeRampExponent = 1.35f;
     [Header("Brake Input")]
-    [SerializeField][Range(0f, 1f)] private float brakeButtonStrength = 1f;
     [SerializeField] private bool cutThrottleWhenBraking = true;
     [Header("Top Speed")]
     [SerializeField] private bool limitTopSpeed = true;
@@ -77,8 +75,6 @@ public class CarPhysicsController : MonoBehaviour
     private float currentTorque;
     private float motorTorqueMultiplier = 1f;
     private float currentSteerInput;
-    private bool brakeActionHeld;
-    private bool brakeButtonHeld;
 
     public Rigidbody Rigidbody => rb;
 
@@ -99,18 +95,6 @@ public class CarPhysicsController : MonoBehaviour
         inputSpeedMultiplier = Mathf.Clamp01(multiplier);
     }
 
-    public void SetExternalInputEnabled(bool enabled)
-    {
-        useExternalInput = enabled;
-        if (!enabled)
-        {
-            steerInput = 0f;
-            throttleInput = 0f;
-            brakeInput = 0f;
-            currentSteerInput = 0f;
-        }
-    }
-
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
@@ -118,73 +102,30 @@ public class CarPhysicsController : MonoBehaviour
 
     private void FixedUpdate()
     {
-        GetInputs(out var steer, out var throttle, out var brake);
+        ProcessInputs(out var steer, out var throttle, out var brake);
         steer = SmoothSteerInput(steer, true);
         ApplySteering(steer);
         ApplyMotor(throttle);
         ApplyBrakes(brake, throttle);
     }
 
-    // ===== Input System callback =====
-    private void OnDrive(InputValue value)
-    {
-        driveInput = value.Get<Vector2>();
-        useExternalInput = false;
-    }
-
-    private void OnBrake(InputValue value)
-    {
-        brakeActionHeld = value.isPressed;
-        useExternalInput = false;
-    }
-
-    private void OnBrakePerformed(InputValue value)
-    {
-        brakeActionHeld = value.isPressed;
-        useExternalInput = false;
-    }
-
-    private void OnBrakeCanceled(InputValue value)
-    {
-        brakeActionHeld = false;
-        useExternalInput = false;
-    }
-
-    public void BrakeButtonDown()
-    {
-        brakeButtonHeld = true;
-    }
-
-    public void BrakeButtonUp()
-    {
-        brakeButtonHeld = false;
-    }
-
+    // ===== Input from controllers =====
+    // Called every frame by the active input controller
+    // (KeyboardCarControls or MobileCarControls).
     public void SetInputs(float steer, float throttle, float brake)
     {
         steerInput = Mathf.Clamp(steer, -1f, 1f);
         throttleInput = Mathf.Clamp(throttle, -1f, 1f);
         brakeInput = Mathf.Clamp01(brake);
-        useExternalInput = true;
     }
 
-    private void GetInputs(out float steer, out float throttle, out float brake)
+    private void ProcessInputs(out float steer, out float throttle, out float brake)
     {
-        if (useExternalInput)
-        {
-            steer = steerInput;
-            throttle = throttleInput;
-            brake = brakeInput;
-            return;
-        }
+        steer = Mathf.Clamp(steerInput, -1f, 1f);
+        throttle = Mathf.Clamp(throttleInput, -1f, 1f);
+        brake = Mathf.Clamp01(brakeInput);
 
-        steer = Mathf.Clamp(driveInput.x, -1f, 1f);
-        throttle = Mathf.Clamp(driveInput.y, -1f, 1f);
-        brake = GetIdleBrake(throttle);
-
-        float uiBrake = brakeButtonHeld ? brakeButtonStrength : 0f;
-        float actionBrake = brakeActionHeld ? brakeButtonStrength : 0f;
-        brake = Mathf.Max(brake, actionBrake, uiBrake);
+        brake = Mathf.Max(brake, GetIdleBrake(throttle));
 
         if (cutThrottleWhenBraking && brake > 0f)
             throttle = 0f;

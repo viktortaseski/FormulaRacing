@@ -17,13 +17,20 @@ public class StartSemaphore : MonoBehaviour
     [SerializeField] private GameObject rootToHide;
     [SerializeField] private bool autoStart = true;
 
-    [Header("Control Lock")]
-    [SerializeField] private Behaviour[] disableWhileCounting;
+    /// <summary>
+    /// True while the start countdown is running. Input controllers check this
+    /// to keep the car still until the lights go out — works across objects and
+    /// for runtime-spawned cars, with no Inspector references needed.
+    /// </summary>
+    public static bool ControlsLocked { get; private set; }
 
     private Coroutine sequenceRoutine;
 
     private void Awake()
     {
+        // Reset in case a previous scene left it locked (static persists).
+        ControlsLocked = false;
+
         if (rootToHide == null)
             rootToHide = gameObject;
     }
@@ -52,7 +59,7 @@ public class StartSemaphore : MonoBehaviour
 
     private IEnumerator RunSequence()
     {
-        SetControlsEnabled(false);
+        ControlsLocked = true;
         SetAllLights(false);
 
         for (int i = 0; i < lights.Length; i++)
@@ -70,7 +77,7 @@ public class StartSemaphore : MonoBehaviour
             yield return new WaitForSeconds(allLitHoldSeconds);
 
         SetAllLights(false);
-        SetControlsEnabled(true);
+        ControlsLocked = false;
 
         if (rootToHide != null)
             rootToHide.SetActive(false);
@@ -90,15 +97,4 @@ public class StartSemaphore : MonoBehaviour
         }
     }
 
-    private void SetControlsEnabled(bool enabled)
-    {
-        if (disableWhileCounting == null)
-            return;
-
-        for (int i = 0; i < disableWhileCounting.Length; i++)
-        {
-            if (disableWhileCounting[i] != null)
-                disableWhileCounting[i].enabled = enabled;
-        }
-    }
 }

@@ -7,7 +7,6 @@ public class MobileCarControls : MonoBehaviour
     [Header("References")]
     [SerializeField] private CarPhysicsController car;
     [SerializeField] private Slider throttleSlider;
-    [SerializeField] private Button brakeButton;
 
     [Header("Throttle")]
     [Tooltip("Extra multiplier for the slider value (0...1).")]
@@ -42,13 +41,32 @@ public class MobileCarControls : MonoBehaviour
         // Initialization
         CacheCar();
         CacheRigidbody();
-        HookBrakeButton();
+    }
+
+    private void OnDisable()
+    {
+        // Release the car so it doesn't hold the last mobile input
+        // after switching to keyboard controls.
+        brakeHeld = false;
+        currentTiltSteer = 0f;
+        if (car != null)
+        {
+            car.SetInputs(0f, 0f, 0f);
+            car.SetInputSpeedMultiplier(1f);
+        }
     }
 
     private void Update()
     {
         if (!EnsureCar())
             return;
+
+        // Hold the car still during the start countdown, even if the slider is up.
+        if (StartSemaphore.ControlsLocked)
+        {
+            car.SetInputs(0f, 0f, 0f);
+            return;
+        }
 
         float move = ReadMoveInput();
         ComputeThrottleBrake(move, out var throttle, out var brake);
@@ -190,13 +208,6 @@ public class MobileCarControls : MonoBehaviour
             return;
 
         carRb = car.Rigidbody != null ? car.Rigidbody : car.GetComponent<Rigidbody>();
-    }
-
-    private void HookBrakeButton()
-    {
-        if (brakeButton == null)
-            return;
-
     }
 
     private void MaintainReferences()

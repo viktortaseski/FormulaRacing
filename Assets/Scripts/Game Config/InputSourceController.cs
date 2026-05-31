@@ -1,19 +1,27 @@
+using System;
 using UnityEngine;
 using TMPro;
 
 /// <summary>
 /// Persists the player's input source choice (Keyboard vs Mobile) and
-/// enables/disables MobileCarControls accordingly.
+/// enables exactly one set of input controllers accordingly: KeyboardCarControls
+/// for Keyboard, MobileCarControls for Mobile. Keyboard is the default.
+///
+/// The dropdown that writes the setting and the cars that react to it usually
+/// live in different scenes (Settings vs gameplay). To keep them in sync, a
+/// change broadcasts the static <see cref="Changed"/> event, and every instance
+/// re-applies it — so switching the dropdown updates already-spawned cars even
+/// when the Settings screen is an additive overlay.
 ///
 /// Wire-up in Unity:
 ///   1. Add this component to your Settings GameObject (same one that has SettingsManager).
 ///   2. Assign the TMP_Dropdown for input source to the "Input Source Dropdown" field.
 ///      The dropdown must have exactly two options in order: "Keyboard", "Mobile".
-///   3. Assign all MobileCarControls components in the scene to the "Mobile Controls" array.
-///      (Each car that can be driven on mobile needs its MobileCarControls listed here.)
+///   3. Assign every car's KeyboardCarControls to "Keyboard Controls" and every car's
+///      MobileCarControls to "Mobile Controls".
 ///   4. In every gameplay scene, add a GameObject with only this component (no dropdown needed)
-///      and populate the "Mobile Controls" array — it will read the saved setting on Awake
-///      and enable/disable the scripts automatically.
+///      and populate both arrays — it applies the saved setting on enable and re-applies
+///      whenever the setting changes.
 /// </summary>
 public class InputSourceController : MonoBehaviour
 {
@@ -21,21 +29,29 @@ public class InputSourceController : MonoBehaviour
 
     public enum InputSource { Keyboard = 0, Mobile = 1 }
 
+    /// <summary>Raised whenever the saved input source changes (from any instance/scene).</summary>
+    public static event Action<InputSource> Changed;
+
     [Header("UI (Settings screen only — leave empty in gameplay scenes)")]
     [SerializeField] private TMP_Dropdown inputSourceDropdown;
 
     [Header("Targets")]
+    [SerializeField] private KeyboardCarControls[] keyboardControls;
     [SerializeField] private MobileCarControls[] mobileControls;
 
-    private void Awake()
+    private void OnEnable()
     {
+        Changed += OnInputSourceChanged;
         Apply(GetSavedInputSource());
         LoadToUI();
         HookUIEvents();
     }
 
-    private void OnEnable()  => HookUIEvents();
-    private void OnDisable() => UnhookUIEvents();
+    private void OnDisable()
+    {
+        Changed -= OnInputSourceChanged;
+        UnhookUIEvents();
+    }
 
     // ── UI ──────────────────────────────────────────────────────────────────
 
@@ -62,7 +78,13 @@ public class InputSourceController : MonoBehaviour
         var source = (InputSource)Mathf.Clamp(index, 0, 1);
         PlayerPrefs.SetInt(InputSourceKey, (int)source);
         PlayerPrefs.Save();
+        Changed?.Invoke(source);   // notify every instance, including gameplay-scene cars
+    }
+
+    private void OnInputSourceChanged(InputSource source)
+    {
         Apply(source);
+        LoadToUI();
     }
 
     // ── Apply ────────────────────────────────────────────────────────────────
@@ -71,12 +93,18 @@ public class InputSourceController : MonoBehaviour
     {
         bool mobileActive = source == InputSource.Mobile;
 
-        if (mobileControls == null) return;
+        SetEnabled(mobileControls, mobileActive);
+        SetEnabled(keyboardControls, !mobileActive);
+    }
 
-        foreach (var ctrl in mobileControls)
+    private static void SetEnabled(MonoBehaviour[] controls, bool enabled)
+    {
+        if (controls == null) return;
+
+        foreach (var ctrl in controls)
         {
             if (ctrl != null)
-                ctrl.enabled = mobileActive;
+                ctrl.enabled = enabled;
         }
     }
 
