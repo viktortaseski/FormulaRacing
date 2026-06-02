@@ -3,7 +3,6 @@ using UnityEngine.SceneManagement;
 
 public class MenuManager : MonoBehaviour
 {
-    [SerializeField] private GarageMenu garageMenu;
     [SerializeField] private GameObject mainMenuPanel;
     [SerializeField] private GameObject trackSelectionPanel;
     [SerializeField] private string drivingSceneName = "Multiplayer";
@@ -53,16 +52,6 @@ public class MenuManager : MonoBehaviour
         Debug.Log("Multiplayer coming soon!");
     }
 
-    public void OpenGarage()
-    {
-        if (garageMenu == null)
-        {
-            Debug.LogWarning("GarageMenu reference is missing on MenuManager.");
-            return;
-        }
-
-        garageMenu.Open();
-    }
 
     public void QuitGame()
     {
